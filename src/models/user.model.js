@@ -140,6 +140,10 @@ const userSchema = new Schema(
         serviceCharge:{
             type: Number,
         },
+        childrens:{
+            type: Schema.Types.ObjectId,
+            ref:"users"
+        },
 		resetPasswordToken: {
 			type: String,
 			default: "0",

@@ -107,3 +107,14 @@ exports.risingStars = catchAsyncErrors(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, users, "Top 10 Rising Stars"));
 });
 
+// ?? Single User Handler
+exports.risingStars = catchAsyncErrors(async (req, res) => {
+	const users = await User.find({ role: "user" }).sort({ referralIncome: -1 }).limit(10);
+
+    if (!users) {
+        throw new ApiError(404, "No user found");
+    }
+
+    return res.status(200).json(new ApiResponse(200, users, "Top 10 Rising Stars"));
+});
+
