@@ -5,43 +5,47 @@ const { Schema } = mongoose;
 // car Schema
 const epinSchema = new Schema(
 	{
-		TransferId:{
+		transferId:{
             type: String,
-            required: [true, "Transfer Id is required"],
+            // required: [true, "Transfer Id is required"],
             unique: true,
         },
-        Epin:{
-            type: String,
+        epin:{
+            type: [String],
             required: [true, "Epin is required"],
             unique: true,
         },
+        isRedeem : {
+            type: Boolean,
+            default: false,
+        },
         status:{
             type: String,
-            enum: ["Successful", "Not Delivered"],
-            default: "unused",
+            enum: ["allocated", "notAllocated"],
+            default: "notAllocated",
         },
 		user: {
 			type: Schema.Types.ObjectId,
-			ref: "user", // This should match the model name of your owner schema
+			ref: "User", // This should match the model name of your owner schema
 		},
 	},
 	{ timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
-    if (this.isNew) {
-        const lastUser = await User.findOne({}, {}, { sort: { 'userId': -1 }     });
-        if (lastUser) {
-            this.userId = Number(lastUser.userId) + 1;
-        } else {
-            this.userId = 1;
-        }
-    }
-	next();
-});
+// epinSchema.pre("save", async function (next) {
+//     if (this.isNew) {
+//         const lastUser = await User.findOne({}, {}, { sort: { 'userId': -1 }     });
+//         if (lastUser) {
+//             this.userId = Number(lastUser.userId) + 1;
+//         } else {
+//             this.userId = 1;
+//         }
+//     }
+// 	next();
+// });
 
 
-const Epin = mongoose.model("Epin", epinSchema);
+const Epin = mongoose.model("epin", epinSchema);
 module.exports = Epin;
 
 

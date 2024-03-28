@@ -45,12 +45,12 @@ const eventSchema = new Schema(
 
         status:{
             type: String,
-            enum: ["Successful", "Not Delivered"],
-            default: "unused",
+            enum: ["completed", "notapproved", "ongoing"],
+            default: "notapproved",
         },
 		eventManager: {
 			type: Schema.Types.ObjectId,
-			ref: "users", // This should match the model name of your owner schema
+			ref: "user", // This should match the model name of your owner schema
 		},
 	},
 	{ timestamps: true }

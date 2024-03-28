@@ -10,11 +10,12 @@ const teamSchema = new Schema(
             required: [true, "Group Name is required"],
             unique: true,
         },
-        groupMembers:{
-            type: Schema.Types.ObjectId ,
-            ref: "users",
-            required: [true, "Group Members is required"],
-        },
+        groupMembers:[
+            {
+                type: Schema.Types.ObjectId ,
+                ref: "user",
+            }
+        ],
 	},
 	{ timestamps: true }
 );

@@ -96,10 +96,19 @@ const userSchema = new Schema(
             type: String,
             default: "Silver",
         },
-        totalRefers:{
-            type: Number,
-            default: 0,
+        referralCode:{
+            type: String,
+            unique: true,
         },
+        referralUrl:{
+            type: String,
+            unique: true,
+        },
+        refers:{
+            type: [Schema.Types.ObjectId],
+            ref:"referrals"
+        },
+        // REFER TO AND REFER BY   
         totalBonus:{
             type: Number,
             default: 0,
@@ -122,6 +131,31 @@ const userSchema = new Schema(
         referralIncome:{
             type: Number,
             default: 0,
+        },
+        epinUser:{
+            type:Schema.Types.ObjectId,
+            ref:"epin"
+        },
+        epinManager:{
+            transferId:{
+                type: String,
+                // required: [true, "Transfer Id is required"],
+                unique: true,
+            },
+            epin:{
+                type: [String],
+                required: [true, "Epin is required"],
+                unique: true,
+            },
+            isRedeem : {
+                type: Boolean,
+                default: false,
+            },
+            status:{
+                type: String,
+                enum: ["allocated", "notAllocated"],
+                default: "notAllocated",
+            },
         },
         totalEpin:{
             type: Number,
