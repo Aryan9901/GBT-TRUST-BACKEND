@@ -5,14 +5,6 @@ dotenv.config({
 	path: "./.env",
 });
 
-var admin = require("firebase-admin");
-
-var serviceAccount = require("../gbt-mlm-firebase-adminsdk-6b5yu-99a08ce259.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
 
 connectDB()
 	.then(() => {

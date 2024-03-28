@@ -47,15 +47,15 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 
 // ?? Admin Login Handler
 exports.loginUser = catchAsyncErrors(async (req, res) => {
-	const { username, password } = req.body;
-
-	if (!username || !password) {
+	
+	const { email, password } = req.body;
+	if (!email || !password) {
 		throw new ApiError(400, "phone number or username and password is required is required");
 	}
 	const user = await User.findOne({
-		$or: [{ contact: username }, { email: username }],
+		email
 	}).select("+password");
-
+	console.log(user);
 	if (!user) {
 		throw new ApiError(404, "User does not exist");
 	}
