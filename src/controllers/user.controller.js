@@ -11,14 +11,16 @@ const { findById } = require("../models/bank.model.js");
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
 	const { firstName, lastName,email, contact, city, postalCode, state, password, role } = req.body;
-
-	if ([firstName, lastName, email, contact, password, city, postalCode, state].some((field) => field?.trim() === "")) {
+	// console.log(req.body);
+	if ([firstName, lastName, email, contact, password, city, postalCode, state].some((field) => field === "")) {
 		throw new ApiError(400, "All fields are required");
 	}
 
 	const existedUser = await User.findOne({
 		$or: [{ email }, { contact }],
 	});
+
+	console.log(existedUser);
 
 	if (existedUser) {
 		throw new ApiError(409, "User with same email or contact already exists");
@@ -35,6 +37,8 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
         postalCode, 
         state
 	});
+
+	console.log(user);
 
 	const createdUser = await User.findById(user._id).select("-password");
 

@@ -182,6 +182,11 @@ const userSchema = new Schema(
 			type: String,
 			default: "0",
 		},
+        plan:{
+            type: String,
+            enum: ["free", "premium", "gold", "platinum"],
+            default: "free",
+        },
 	},
 	{ timestamps: true }
 );
