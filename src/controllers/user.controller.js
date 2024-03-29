@@ -10,15 +10,14 @@ const { findById } = require("../models/bank.model.js");
 
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
-	const { firstName, lastName, email, phone, city, postalCode, state, password, role } = req.body;
-	console.log(req.body);
-	console.log(firstName, lastName, email, phone, city, postalCode, state, password, role);
-	if ([firstName, lastName, email, phone, password, city, postalCode, state].some((field) => field === "")) {
-		throw new ApiError(400, "All fields are required");
-	}
+	const { firstName, lastName, email, contact, city, postalCode, state, password, role } = req.body;
+	console.log(firstName, lastName, email, contact, city, postalCode, state, password, role);
+	// if ([firstName, lastName, email, contact, city, postalCode, state, password].some((field) => field?.trim() === "")) {
+	// 	throw new ApiError(400, "All fields are required");
+	// }
 
 	const existedUser = await User.findOne({
-		$or: [{ email }, { contact: phone }],
+		$or: [{ email }, { contact }],
 	});
 
 	console.log(existedUser);
@@ -31,7 +30,7 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		firstName,
 		lastName,
 		email,
-		contact: phone,
+		contact,
 		password,
 		role: role || "user",
 		city,
