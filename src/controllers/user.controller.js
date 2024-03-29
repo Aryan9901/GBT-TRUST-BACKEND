@@ -104,6 +104,14 @@ exports.logoutUser = catchAsyncErrors(async (req, res) => {
 		.json(new ApiResponse(200, "Logged Out Successfully"));
 });
 
+exports.myProfile = catchAsyncErrors(async (req, res) => {
+	const user = await User.findById(req.user._id);
+	if (!user) {
+		throw new ApiError(404, "User not found");
+	}
+	res.status(200).json(new ApiResponse(200, { success: true, user }));
+});
+
 // ?? Team Rising Star Handler
 exports.risingStars = catchAsyncErrors(async (req, res) => {
 	const users = await User.find({ role: "user" }).sort({ referralIncome: -1 }).limit(10);
