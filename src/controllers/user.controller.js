@@ -10,28 +10,24 @@ const { findById } = require("../models/bank.model.js");
 
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
-	const { firstName, lastName, email, phone, city, postalCode, state, password, role } = req.body;
-	console.log(req.body);
-	console.log(firstName, lastName, email, phone, city, postalCode, state, password, role);
-	if ([firstName, lastName, email, phone, password, city, postalCode, state].some((field) => field === "")) {
-		throw new ApiError(400, "All fields are required");
-	}
+	const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode } = req.body;
+	console.log(firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode);
 
 	const existedUser = await User.findOne({
-		$or: [{ email }, { contact: phone }],
+		$or: [{ email }, { contact }],
 	});
 
 	console.log(existedUser);
 
 	if (existedUser) {
-		throw new ApiError(409, "User with same email or contact already exists");
+		throw new ApiError(409, "User with the same email or contact already exists");
 	}
 
 	const user = await User.create({
 		firstName,
 		lastName,
 		email,
-		contact: phone,
+		contact,
 		password,
 		role: role || "user",
 		city,
@@ -47,7 +43,7 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(500, "Something went wrong while registering the user");
 	}
 
-	return res.status(201).json(new ApiResponse(200, createdUser, "User registered Successfully"));
+	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
 });
 
 // ?? Admin Login Handler
@@ -269,6 +265,7 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		if (owner.refers.includes(req.user._id)) {
 			return res.status(200).json(new ApiResponse(200, owner, "Referral link already accessed"));
 		}
+
 		console.log(req.user._id.toString());
 		owner.refers.push(req.user._id); // Assuming the user ID is stored in req.user._id
 		await owner.save();
@@ -279,6 +276,29 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		return res.status(500).json({ error: "Internal Server Error" });
 	}
 });
+
+// exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
+// 	const referralCode = req?.params?.referralCode.split("=")[1];
+// 	try {
+// 		if (!referralCode) {
+// 			throw new ApiError(404, "Referral code not found");
+// 		}
+// 		const owner = await User.findOne({ referralCode });
+// 		if (!owner) {
+// 			throw new ApiError(404, "Owner not found");
+// 		}
+
+// 		// Store the referral link access status or any relevant data in session or cookies for later retrieval
+// 		req.session.referralLinkAccessed = true;
+// 		req.session.referralOwnerId = owner._id;
+
+// 		// Redirect the user to the signup page
+// 		res.redirect("http://localhost:5173/signup");
+// 	} catch (error) {
+// 		console.error("Error processing referral:", error);
+// 		return res.status(500).json({ error: "Internal Server Error" });
+// 	}
+// });
 
 // ?? Epin Generator Handler
 exports.epinGenerator = catchAsyncErrors(async (req, res) => {

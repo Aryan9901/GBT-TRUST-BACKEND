@@ -96,11 +96,11 @@ const userSchema = new Schema(
 		},
 		referralCode: {
 			type: String,
-			unique: true,
+			// unique: true,
 		},
 		referralUrl: {
 			type: String,
-			unique: true,
+			// unique: true,
 		},
 		refers: {
 			type: [Schema.Types.ObjectId],
