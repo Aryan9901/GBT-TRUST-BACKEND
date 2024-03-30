@@ -51,7 +51,7 @@ router.route("/team/stars").get(authUser, risingStars);
 router.route("/epin/generate").post(authUser, epinGenerator);
 router.route("/referral/generate-code").post(authUser, referralCodeGenerate);
 router.route("/referral/generate-link").post(authUser, referralLinkGenerate);
-router.route("/referral/generated-link/:referralCode").get(authUser, referralLinkAccess);
+router.route("/referral/generated-link/:referralCode").get(referralLinkAccess);
 router.route("/update-plan").post(authUser, updatePlan);
 router.route("/rz/payment-verify").post(authUser, verifyRazorpayPayment);
 router.route("/rz/create-order").post(authUser, createRazorpayOrder);

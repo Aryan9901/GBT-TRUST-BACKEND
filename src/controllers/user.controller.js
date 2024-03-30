@@ -254,6 +254,31 @@ exports.referralLinkGenerate = catchAsyncErrors(async (req, res) => {
 });
 
 // ?? Referral Link Access Handler
+// exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
+// 	const referralCode = req?.params?.referralCode.split("=")[1];
+// 	try {
+// 		if (!referralCode) {
+// 			throw new ApiError(404, "Referral code not found");
+// 		}
+// 		const owner = await User.findOne({ referralCode });
+// 		if (!owner) {
+// 			throw new ApiError(404, "Owner not found");
+// 		}
+
+// 		if (owner.refers.includes(req.user._id)) {
+// 			return res.status(200).json(new ApiResponse(200, owner, "Referral link already accessed"));
+// 		}
+// 		console.log(req.user._id.toString());
+// 		owner.refers.push(req.user._id); // Assuming the user ID is stored in req.user._id
+// 		await owner.save();
+// 		// Redirect to home page or any other page after processing the referral
+// 		return res.status(200).json(new ApiResponse(200, owner, "Referral link accessed successfully"));
+// 	} catch (error) {
+// 		console.error("Error processing referral:", error);
+// 		return res.status(500).json({ error: "Internal Server Error" });
+// 	}
+// });
+
 exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 	const referralCode = req?.params?.referralCode.split("=")[1];
 	try {
@@ -265,14 +290,12 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 			throw new ApiError(404, "Owner not found");
 		}
 
-		if (owner.refers.includes(req.user._id)) {
-			return res.status(200).json(new ApiResponse(200, owner, "Referral link already accessed"));
-		}
-		console.log(req.user._id.toString());
-		owner.refers.push(req.user._id); // Assuming the user ID is stored in req.user._id
-		await owner.save();
-		// Redirect to home page or any other page after processing the referral
-		return res.status(200).json(new ApiResponse(200, owner, "Referral link accessed successfully"));
+		// Store the referral link access status or any relevant data in session or cookies for later retrieval
+		req.session.referralLinkAccessed = true;
+		req.session.referralOwnerId = owner._id;
+
+		// Redirect the user to the signup page
+		res.redirect("http://localhost:5173/signup");
 	} catch (error) {
 		console.error("Error processing referral:", error);
 		return res.status(500).json({ error: "Internal Server Error" });
