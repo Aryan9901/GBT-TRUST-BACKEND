@@ -269,6 +269,23 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		console.log(req.user._id.toString());
 		owner.refers.push(req.user._id); // Assuming the user ID is stored in req.user._id
 		await owner.save();
+
+		if (owner.refers.length % 2 === 0) {
+			// Add referral bonus to owner's account
+			const referralBonus = 300; // Assuming the referral bonus is 300 rupees
+
+			// Add referral bonus to balance
+			owner.balance += referralBonus;
+
+			// Add referral bonus to totalBonus
+			owner.totalBonus += referralBonus;
+
+			// Add referral bonus to referralIncome
+			owner.referralIncome += referralBonus;
+
+			await owner.save();
+		}
+
 		// Redirect to home page or any other page after processing the referral
 		return res.status(200).json(new ApiResponse(200, owner, "Referral link accessed successfully"));
 	} catch (error) {
