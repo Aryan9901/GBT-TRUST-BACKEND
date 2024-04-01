@@ -10,7 +10,7 @@
   "keywords": [
     "mlm"
   ],
-  "author": "Raj Malpani",
+  "author": "Aryan Gupta",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
