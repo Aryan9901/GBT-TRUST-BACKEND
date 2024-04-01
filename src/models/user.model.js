@@ -31,6 +31,17 @@ const userSchema = new Schema(
 			minLength: [10, "Contact should be atleast 10 character long"],
 			maxLength: [10, "Contact must not be exceed 10 character long"],
 		},
+		whatsapp: {
+			type: String,
+			minLength: [10, "whatsapp should be atleast 10 character long"],
+			maxLength: [10, "whatsapp must not be exceed 10 character long"],
+		},
+		linkedin: {
+			type: String,
+		},
+		facebook: {
+			type: String,
+		},
 		city: {
 			type: String,
 			required: [true, "City is required"],

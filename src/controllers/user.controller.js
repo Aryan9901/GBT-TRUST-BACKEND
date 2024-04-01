@@ -1,4 +1,5 @@
 const User = require("../models/user.model");
+const Bank = require("../models/bank.model");
 const Epin = require("../models/epin.model.js");
 
 const { ApiError } = require("../utils/ApiError.js");
@@ -110,46 +111,78 @@ exports.myProfile = catchAsyncErrors(async (req, res) => {
 
 // ?? UPDATE PROFILE
 exports.updateProfile = catchAsyncErrors(async (req, res) => {
-	const { firstName, lastName, gender, dob, accountNumber, ifscCode, accountHolderName } = req.body;
-  	const userId = req.user._id; // Assuming you're using authentication middleware to attach the user object to the request
-	console.log(userId);
-  	try {
-    // Find the user by userId
-    const user = await User.findById(userId);
-    if (!user) {
+	const { firstName, lastName, gender, dob, contact, whatsapp, linkedin, facebook, bankDetails } = req.body;
+	const userId = req.user._id; // Assuming you're using authentication middleware to attach the user object to the request
+	console.log(1);
+	// Find the user by userId
+	const user = await User.findById(userId);
+	if (!user) {
 		throw new ApiError(404, "User not found");
-    }
-    // Update user fields
-    if(firstName) {
+	}
+	console.log(2);
+	// Update user fields if they are provided and not undefined
+	if (firstName !== undefined) {
 		user.firstName = firstName;
 	}
-	if(lastName) {
+	if (lastName !== undefined) {
 		user.lastName = lastName;
 	}
-	if(gender) {
+	if (gender !== undefined) {
 		user.gender = gender;
 	}
-	if(dob) {
+	if (dob !== undefined) {
 		user.dob = dob;
 	}
-	if(accountNumber) {
-		user.accountNumber = accountNumber;
+	if (contact !== undefined) {
+		user.contact = contact;
 	}
-	if(ifscCode) {
-		user.ifscCode = ifscCode;
+	if (whatsapp !== undefined) {
+		user.whatsapp = whatsapp;
 	}
-	if(accountHolderName) {
-		user.accountHolderName = accountHolderName;
+	if (linkedin !== undefined) {
+		user.linkedin = linkedin;
+	}
+	if (facebook !== undefined) {
+		user.facebook = facebook;
+	}
+	// Add conditions for other fields as needed
+	console.log(3);
+	// Save the updated user object
+	await user.save();
+	console.log(4);
+
+	// Update or create bank details if provided
+	if (bankDetails) {
+		console.log(5);
+		let bank = await Bank.findOne({ user: userId }); // Find bank details by user ID
+		if (!bank) {
+			// Create bank details if not found
+			bank = new Bank({
+				user: userId,
+				accountNumber: bankDetails.accountNumber,
+				ifscCode: bankDetails.ifscCode,
+				accountType: bankDetails.accountType,
+				accountHolderName: bankDetails.accountHolderName,
+			});
+		} else {
+			// Update bank details if found
+			if (bankDetails.accountNumber !== undefined) {
+				bank.accountNumber = bankDetails.accountNumber;
+			}
+			if (bankDetails.ifscCode !== undefined) {
+				bank.ifscCode = bankDetails.ifscCode;
+			}
+			if (bankDetails.accountHolderName !== undefined) {
+				bank.accountHolderName = bankDetails.accountHolderName;
+			}
+			if (bankDetails.accountType !== undefined) {
+				bank.accountType = bankDetails.accountType;
+			}
+		}
+		await bank.save();
 	}
 
-    // Save the updated user object
-    await user.save();
-
-    res.status(200).json(new ApiResponse(200, user, "Profile updated successfully"));
-  } catch (error) {
-    console.error('Error updating user profile:', error);
-    throw new ApiError(500, 'Failed to update user profile');
-  }
+	res.status(200).json(new ApiResponse(200, user, "Profile updated successfully"));
 });
 
 // ?? Team Rising Star Handler
