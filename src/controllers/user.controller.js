@@ -266,7 +266,6 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 			return res.status(200).json(new ApiResponse(200, owner, "Referral link already accessed"));
 		}
 
-		console.log(req.user._id.toString());
 		owner.refers.push(req.user._id); // Assuming the user ID is stored in req.user._id
 		await owner.save();
 
