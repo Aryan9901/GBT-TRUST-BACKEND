@@ -106,6 +106,11 @@ const userSchema = new Schema(
 			type: [Schema.Types.ObjectId],
 			ref: "referrals",
 		},
+		parent: {
+			type: Schema.Types.ObjectId,
+			ref: "user",
+		},
+
 		// REFER TO AND REFER BY
 		totalBonus: {
 			type: Number,

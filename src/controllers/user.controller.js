@@ -270,6 +270,13 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		owner.refers.push(req.user._id); // Assuming the user ID is stored in req.user._id
 		await owner.save();
 
+		// Add parent reference to the user being referred
+		const userBeingReferred = await User.findById(req.user._id);
+		if (userBeingReferred) {
+			userBeingReferred.parent = owner._id;
+			await userBeingReferred.save();
+		}
+
 		if (owner.refers.length % 2 === 0) {
 			// Add referral bonus to owner's account
 			const referralBonus = 300; // Assuming the referral bonus is 300 rupees
