@@ -12,6 +12,7 @@ const {
 	referralCodeGenerate,
 	referralLinkAccess,
 	myProfile,
+	updateProfile,
 } = require("../controllers/user.controller.js");
 const { authUser } = require("../middlewares/auth.middleware.js");
 // const { upload } = require("../middlewares/multer.middleware.js");
@@ -46,6 +47,7 @@ router.route("/logout").post(authUser, logoutUser);
 router.route("/me").get(authUser, myProfile);
 router.route("/single/user").get(authUser, singleUser);
 router.route("/allusers").get(authUser, allUsers);
+router.route("/update-profile").get(authUser, updateProfile);
 router.route("/team/newgroup").post(authUser, newGroup);
 router.route("/team/stars").get(authUser, risingStars);
 router.route("/epin/generate").post(authUser, epinGenerator);

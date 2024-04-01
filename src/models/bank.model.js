@@ -18,16 +18,12 @@ const bankSchema = new Schema(
             type: String,
             required: [true, "IFSC Code is required"],
         },
-        // branchName:{
-        //     type: String,
-        //     required: [true, "Branch Name is required"],
-        // },
         accountType:{
             type: String,
             enum: ["Saving", "Current"],
             default: "Saving",
         },
-
+        
 	},
 	{ timestamps: true }
 );

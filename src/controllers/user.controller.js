@@ -108,6 +108,50 @@ exports.myProfile = catchAsyncErrors(async (req, res) => {
 	res.status(200).json(new ApiResponse(200, { success: true, user }));
 });
 
+// ?? UPDATE PROFILE
+exports.updateProfile = catchAsyncErrors(async (req, res) => {
+	const { firstName, lastName, gender, dob, accountNumber, ifscCode, accountHolderName } = req.body;
+  	const userId = req.user._id; // Assuming you're using authentication middleware to attach the user object to the request
+	console.log(userId);
+  	try {
+    // Find the user by userId
+    const user = await User.findById(userId);
+    if (!user) {
+		throw new ApiError(404, "User not found");
+    }
+    // Update user fields
+    if(firstName) {
+		user.firstName = firstName;
+	}
+	if(lastName) {
+		user.lastName = lastName;
+	}
+	if(gender) {
+		user.gender = gender;
+	}
+	if(dob) {
+		user.dob = dob;
+	}
+	if(accountNumber) {
+		user.accountNumber = accountNumber;
+	}
+	if(ifscCode) {
+		user.ifscCode = ifscCode;
+	}
+	if(accountHolderName) {
+		user.accountHolderName = accountHolderName;
+	}
+
+    // Save the updated user object
+    await user.save();
+
+    res.status(200).json(new ApiResponse(200, user, "Profile updated successfully"));
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    throw new ApiError(500, 'Failed to update user profile');
+  }
+});
+
 // ?? Team Rising Star Handler
 exports.risingStars = catchAsyncErrors(async (req, res) => {
 	const users = await User.find({ role: "user" }).sort({ referralIncome: -1 }).limit(10);
