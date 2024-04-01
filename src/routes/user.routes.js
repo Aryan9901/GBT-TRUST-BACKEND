@@ -47,7 +47,7 @@ router.route("/logout").post(authUser, logoutUser);
 router.route("/me").get(authUser, myProfile);
 router.route("/single/user").get(authUser, singleUser);
 router.route("/allusers").get(authUser, allUsers);
-router.route("/update-profile").get(authUser, updateProfile);
+router.route("/update/user").post(authUser, updateProfile);
 router.route("/team/newgroup").post(authUser, newGroup);
 router.route("/team/stars").get(authUser, risingStars);
 router.route("/epin/generate").post(authUser, epinGenerator);
