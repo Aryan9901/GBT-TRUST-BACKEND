@@ -5,7 +5,7 @@ const { ApiResponse } = require("../utils/ApiResponse.js");
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors.js");
 
 exports.createEventRequest = catchAsyncErrors(async (req, res) => {
-	const { eventName, eventPurpose, eventBudget, peopleJoin, eventDate, eventTime, eventDuration, guestEmails, eventLocation } = req.body;
+	const { eventName, eventPurpose, eventBudget, peopleJoin, eventDate, eventTime, eventDuration } = req.body;
 
 	// Assuming eventManager is obtained from req.user or passed along with the request
 	const eventManager = req.user._id; // Adjust this based on your authentication mechanism
@@ -19,8 +19,6 @@ exports.createEventRequest = catchAsyncErrors(async (req, res) => {
 		eventDate,
 		eventTime,
 		eventDuration,
-		guestEmails,
-		eventLocation,
 		eventManager,
 		status: "notapproved", // Default status for a new event request
 	});
