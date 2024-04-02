@@ -413,17 +413,17 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 
 		// Add referral bonus to parent and their parent recursively
 		let parent = owner.parent;
-		let bonusToParent = referralBonus;
+		let bonusToParent = referralBonus / 2;
 		while (parent) {
 			const parentUser = await User.findById(parent);
 			if (parentUser) {
 				parentUser.balance += bonusToParent;
 				parentUser.totalBonus += bonusToParent;
-				parentUser.referralIncome += bonusToParent;
+				parentUser.referralIncome /= bonusToParent;
 				await parentUser.save();
 			}
 			parent = parentUser.parent;
-			bonusToParent = bonusToParent; // Halve the bonus for the next parent
+			bonusToParent /= 2; // Halve the bonus for the next parent
 		}
 	}
 
@@ -501,3 +501,43 @@ async function generateReferralCode(userId) {
 function getBaseUrl(req) {
 	return `${req.protocol}://${req.get("host")}/api/v1/user`;
 }
+
+// !! tree formation
+
+// Function to recursively generate the tree nodes
+async function generateTree(userId, depth) {
+	const user = await User.findById(userId);
+	if (!user) return null;
+
+	const name = `${user.firstName} ${user.lastName}`;
+	const attributes = {
+		rank: user.rank,
+	};
+	const children = [];
+
+	// Fetch the children IDs from the database
+	const childIds = user.refers;
+
+	// Recursively generate tree nodes for each child
+	for (const childId of childIds) {
+		const childNode = await generateTree(childId, depth + 1);
+		children.push(childNode);
+	}
+
+	return {
+		name,
+		attributes,
+		children,
+	};
+}
+
+// Controller function to generate the user tree
+exports.generateUserTree = catchAsyncErrors(async (req, res) => {
+	const { userId } = req.query; // Assuming the user ID is passed in the request parameters
+
+	// Generate the tree starting from the specified root user
+	const tree = await generateTree(userId, 0);
+
+	// Return the generated tree
+	res.status(200).json(new ApiResponse(200, tree, "Tree Generated Successfully"));
+});
