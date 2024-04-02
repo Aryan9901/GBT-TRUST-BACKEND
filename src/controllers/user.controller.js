@@ -7,7 +7,15 @@ const { ApiResponse } = require("../utils/ApiResponse.js");
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors.js");
 const Team = require("../models/team.model.js");
 const crypto = require("crypto");
-const { findById } = require("../models/bank.model.js");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+	service: "Gmail",
+	auth: {
+		user: process.env.NODEMAILER_EMAIL,
+		pass: process.env.NODEMAILER_PASSWORD,
+	}
+});
 
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
@@ -189,6 +197,23 @@ exports.risingStars = catchAsyncErrors(async (req, res) => {
 	}
 
 	return res.status(200).json(new ApiResponse(200, users, "Top 10 Rising Stars"));
+});
+
+exports.sendMail = catchAsyncErrors(async (req, res) => {
+	const mailOptions = {
+		from: process.env.NODEMAILER_EMAIL,
+		to: req.body.email,
+		subject: "Invitation Regarding Program/Event.",
+		html: "I hope this email finds you well. We are excited to extend an invitation to you for [provide details about the event/program/platform]."
+	};
+	transporter.sendMail(mailOptions, (error, info) => {
+		if (error) {
+			throw new ApiError(404, error, "Email not sent");
+		}
+	});
+	console.log(information);
+	return res.status(200).json(new ApiResponse(200, information, "Email sent successfully"));
+
 });
 
 // ?? Single User Handler
