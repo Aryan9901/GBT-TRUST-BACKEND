@@ -3,7 +3,6 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { generatedErrors } = require("./middlewares/errors");
 const { ApiError } = require("./utils/ApiError");
-
 const app = express();
 
 app.use(
