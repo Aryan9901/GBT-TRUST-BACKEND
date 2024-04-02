@@ -21,10 +21,12 @@ app.use(cookieParser());
 
 const userRouter = require("./routes/user.routes.js");
 const eventsRouter = require("./routes/event.routes.js");
+const bankRouter = require("./routes/bank.routes.js");
 
 //routes declare
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/user", eventsRouter);
+app.use("/api/v1/user", bankRouter);
 
 app.get("/", (req, res) => {
 	res.send("Welcome to the GBT API.");
