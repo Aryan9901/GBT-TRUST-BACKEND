@@ -13,6 +13,7 @@ const {
 	referralLinkAccess,
 	myProfile,
 	updateProfile,
+	generateUserTree,
 } = require("../controllers/user.controller.js");
 const { authUser } = require("../middlewares/auth.middleware.js");
 // const { upload } = require("../middlewares/multer.middleware.js");
@@ -57,5 +58,6 @@ router.route("/referral/generated-link/:referralCode").get(authUser, referralLin
 router.route("/update-plan").post(authUser, updatePlan);
 router.route("/rz/payment-verify").post(authUser, verifyRazorpayPayment);
 router.route("/rz/create-order").post(authUser, createRazorpayOrder);
+router.route("/generate/tree").post(authUser, generateUserTree);
 
 module.exports = router;
