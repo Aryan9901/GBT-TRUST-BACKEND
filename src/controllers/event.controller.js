@@ -9,7 +9,6 @@ exports.createEventRequest = catchAsyncErrors(async (req, res) => {
 
 	// Assuming eventManager is obtained from req.user or passed along with the request
 	const eventManager = req.user._id; // Adjust this based on your authentication mechanism
-
 	// Create a new event object
 	const newEvent = new Event({
 		eventName,
