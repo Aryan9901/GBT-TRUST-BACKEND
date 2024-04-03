@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 	auth: {
 		user: process.env.NODEMAILER_EMAIL,
 		pass: process.env.NODEMAILER_PASSWORD,
-	}
+	},
 });
 
 // ?? Admin Register Handler
@@ -74,7 +74,7 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 	if (!isPasswordValid) {
 		throw new ApiError(401, "Invalid user credentials");
 	}
-	
+
 	// Update lastActive field
 	user.lastActive = Date.now();
 	await user.save();
@@ -110,11 +110,11 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 
 // ?? Admin Logout Handler
 exports.logoutUser = catchAsyncErrors(async (req, res) => {
-	  // Update lastActive field
-	  req.user.lastActive = Date.now();
-	  req.user.activeStatus = "inactive";
-	  await req.user.save();
-	  
+	// Update lastActive field
+	req.user.lastActive = Date.now();
+	req.user.activeStatus = "inactive";
+	await req.user.save();
+
 	res.status(200)
 		.cookie("token", null, { expires: new Date(Date.now()), httpOnly: true })
 		.json(new ApiResponse(200, "Logged Out Successfully"));
@@ -215,7 +215,7 @@ exports.sendMail = catchAsyncErrors(async (req, res) => {
 		from: process.env.NODEMAILER_EMAIL,
 		to: req.body.email,
 		subject: "Invitation Regarding Program/Event.",
-		html: "I hope this email finds you well. We are excited to extend an invitation to you for [provide details about the event/program/platform]."
+		html: "I hope this email finds you well. We are excited to extend an invitation to you for [provide details about the event/program/platform].",
 	};
 	transporter.sendMail(mailOptions, (error, info) => {
 		if (error) {
@@ -224,7 +224,6 @@ exports.sendMail = catchAsyncErrors(async (req, res) => {
 	});
 	console.log(information);
 	return res.status(200).json(new ApiResponse(200, information, "Email sent successfully"));
-
 });
 
 // ?? Single User Handler
@@ -459,8 +458,8 @@ exports.generateUserTree = catchAsyncErrors(async (req, res) => {
 
 // Controller to Find Active users
 exports.activeUsers = catchAsyncErrors(async (req, res) => {
-	const users = await User.find({ activeStatus: 'active' });
-	if(!users) {
+	const users = await User.find({ activeStatus: "active" });
+	if (!users) {
 		throw new ApiError(404, "No active users found");
 	}
 	res.status(200).json(new ApiResponse(200, users, "Active Users Found Successfully"));
@@ -537,23 +536,22 @@ async function generateTree(userId, depth) {
 }
 
 async function updateUserActivityStatus() {
-    const inactiveThreshold = 1; // 1 minutes of inactivity threshold
+	const inactiveThreshold = 1; // 1 minutes of inactivity threshold
 
-    const users = await User.find({ activeStatus: 'active' });
+	const users = await User.find({ activeStatus: "active" });
 
-    const currentTime = new Date();
+	const currentTime = new Date();
 
-    users.forEach(async user => {
-        const lastActiveTime = user.lastActive;
-        const timeDifference = currentTime - lastActiveTime;
-        const minutesDifference = timeDifference / (1000 * 60);
+	users.forEach(async (user) => {
+		const lastActiveTime = user.lastActive;
+		const timeDifference = currentTime - lastActiveTime;
+		const minutesDifference = timeDifference / (1000 * 60);
 
-        if (minutesDifference > inactiveThreshold) {
-            user.activeStatus = 'inactive';
-            await user.save();
-        }
-    });
+		if (minutesDifference > inactiveThreshold) {
+			user.activeStatus = "inactive";
+			await user.save();
+		}
+	});
 }
-
 // Run this function periodically using setInterval or a job scheduler
-setInterval(updateUserActivityStatus, 1000*60*60*3); // Check in every 3 hrs
+setInterval(updateUserActivityStatus, 1000 * 60 * 60); // Check in every 3 hrs
