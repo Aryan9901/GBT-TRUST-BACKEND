@@ -537,7 +537,7 @@ async function generateTree(userId, depth) {
 }
 
 async function updateUserActivityStatus() {
-    const inactiveThreshold = 1; // 1 minutes of inactivity threshold
+    const inactiveThreshold = 60; // 60 minutes of inactivity threshold
 
     const users = await User.find({ activeStatus: 'active' });
 
@@ -556,4 +556,4 @@ async function updateUserActivityStatus() {
 }
 
 // Run this function periodically using setInterval or a job scheduler
-setInterval(updateUserActivityStatus, 1000*60*60*3); // Check in every 3 hrs
+setInterval(updateUserActivityStatus, 1000*60*60); // Check in every 3 hrs
