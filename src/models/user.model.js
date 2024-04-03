@@ -80,25 +80,16 @@ const userSchema = new Schema(
 			//match:[]
 		},
 		avatar: {
-			type: Object,
-			default: {
-				fileId: "",
-				url: "https://cdn.vectorstock.com/i/1000x1000/62/59/default-avatar-photo-placeholder-profile-icon-vector-21666259.webp",
-			},
+			type: String,
+			default: "https://cdn.vectorstock.com/i/1000x1000/62/59/default-avatar-photo-placeholder-profile-icon-vector-21666259.webp",
 		},
 		aadharCard: {
-			type: Object,
-			default: {
-				fileId: "",
-				url: "https://cdn.vectorstock.com/i/1000x1000/62/59/default-avatar-photo-placeholder-profile-icon-vector-21666259.webp",
-			},
+			type: String,
+			required: [true, "Aadhar Card is required"],
 		},
 		panCard: {
-			type: Object,
-			default: {
-				fileId: "",
-				url: "https://cdn.vectorstock.com/i/1000x1000/62/59/default-avatar-photo-placeholder-profile-icon-vector-21666259.webp",
-			},
+			type: String,
+			required: [true, "Pan Card is required"],
 		},
 		membershipPakage: {
 			type: String,

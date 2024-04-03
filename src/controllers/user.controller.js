@@ -19,8 +19,8 @@ const transporter = nodemailer.createTransport({
 
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
-	const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode } = req.body;
-	console.log(firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode);
+	const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan } = req.body;
+	console.log(firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan);
 
 	const existedUser = await User.findOne({
 		$or: [{ email }, { contact }],
@@ -42,6 +42,9 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		city,
 		postalCode,
 		state: state,
+		aadharCard: aadhar,
+		panCard: pan,
+		avatar: photo,
 	});
 
 	console.log(user);
@@ -554,4 +557,4 @@ async function updateUserActivityStatus() {
 	});
 }
 // Run this function periodically using setInterval or a job scheduler
-setInterval(updateUserActivityStatus, 1000 * 60 * 60); // Check in every 3 hrs
+setInterval(updateUserActivityStatus, 1000 * 60 * 1); // Check in every 1/2 hrs
