@@ -201,6 +201,11 @@ const userSchema = new Schema(
 			enum: ["free", "premium", "gold", "platinum"],
 			default: "free",
 		},
+		verified: {
+			type: String,
+			enum: ["approved", "pending"],
+			default: "pending",
+		},
 	},
 	{ timestamps: true }
 );

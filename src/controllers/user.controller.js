@@ -556,5 +556,22 @@ async function updateUserActivityStatus() {
 		}
 	});
 }
+
+// ?? setting the approval status
+exports.verifyUser = catchAsyncErrors(async (req, res) => {
+	const { id } = req.query.id;
+	const { status } = req.body;
+
+	const user = await User.findById(id);
+	if (!user) {
+		throw new ApiError(403, "User not found");
+	}
+
+	user.verified = status === true ? "approved" : "pending";
+	await user.save();
+	// Return the generated tree
+	res.status(200).json(new ApiResponse(200, "user" + status === true ? "approved" : "not approved"));
+});
+
 // Run this function periodically using setInterval or a job scheduler
 setInterval(updateUserActivityStatus, 1000 * 60 * 1); // Check in every 1/2 hrs
