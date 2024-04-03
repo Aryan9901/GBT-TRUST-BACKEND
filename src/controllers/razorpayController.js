@@ -1,5 +1,8 @@
 // const axios = require('axios');
 const Razorpay = require("razorpay");
+const { ApiError } = require("../utils/ApiError.js");
+const { ApiResponse } = require("../utils/ApiResponse.js");
+const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors.js");
 const User = require("../models/user.model.js");
 require("dotenv").config();
 
@@ -109,8 +112,30 @@ const updatePlan = async (req, res) => {
 	}
 };
 
+const transferToBank = catchAsyncErrors(async (req, res) => {
+	const { payoutPayload } = req.body;
+	const response = await instance.transfers.create(payoutPayload);
+	console.log("Payout initiated:", response);
+	// Sending success response
+	res.status(200).json(new ApiResponse(200, "Transferred to bank successfully"));
+});
+
 module.exports = {
 	verifyRazorpayPayment,
 	createRazorpayOrder,
 	updatePlan,
+	transferToBank,
 };
+
+// !! razorpay payout
+// Example payload for a bank transfer
+// const payoutPayload = {
+// 	account_number: "ACC_NUMBER",
+// 	fund_account_id: "FUND_ACCOUNT_ID",
+// 	amount: 10000, // Amount in paisa (e.g., 10000 paisa = ₹100)
+// 	currency: "INR",
+// 	mode: "IMPS", // Transfer mode (IMPS/NEFT/RTGS)
+// 	purpose: "payout", // Purpose of the payout
+// 	queue_if_low_balance: true, // Queue payout if balance is low
+// 	reference_id: "YOUR_REFERENCE_ID",
+// };
