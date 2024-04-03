@@ -7,6 +7,15 @@ const { Schema } = mongoose;
 // user Schema
 const userSchema = new Schema(
 	{
+		activeStatus: {
+			type: String,
+			enum: ["active", "inactive"],
+			default: "inactive",
+		},
+		lastActive: {
+			type: Date,
+			default: Date.now,
+		},
 		role: {
 			type: String,
 			enum: ["admin", "user"],
@@ -68,8 +77,6 @@ const userSchema = new Schema(
 			type: String,
 			required: [true, "Password is required"],
 			select: false,
-			maxlength: [25, "Password should not exceed more than 25 characters"],
-			minlength: [6, "Password should not less than 6 characters"],
 			//match:[]
 		},
 		avatar: {
@@ -121,7 +128,6 @@ const userSchema = new Schema(
 			type: Schema.Types.ObjectId,
 			ref: "user",
 		},
-
 		// REFER TO AND REFER BY
 		totalBonus: {
 			type: Number,
@@ -181,12 +187,15 @@ const userSchema = new Schema(
 		},
 		withdrawableBalance: {
 			type: Number,
+			default: 0,
 		},
 		tdsDeduction: {
 			type: Number,
+			default: 0,
 		},
 		serviceCharge: {
 			type: Number,
+			default: 0,
 		},
 		childrens: {
 			type: Schema.Types.ObjectId,

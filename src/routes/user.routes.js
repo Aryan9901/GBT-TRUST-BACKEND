@@ -15,6 +15,7 @@ const {
 	updateProfile,
 	generateUserTree,
 	sendMail,
+	activeUsers,
 } = require("../controllers/user.controller.js");
 const { authUser } = require("../middlewares/auth.middleware.js");
 // const { upload } = require("../middlewares/multer.middleware.js");
@@ -41,7 +42,6 @@ const router = Router();
 
 // !! public routes --------------------------------
 router.route("/login").post(loginUser);
-
 router.route("/register").post(registerUser);
 
 // !! secured routes --------------------------------
@@ -61,6 +61,7 @@ router.route("/rz/payment-verify").post(authUser, verifyRazorpayPayment);
 router.route("/rz/create-order").post(authUser, createRazorpayOrder);
 router.route("/generate/tree").post(authUser, generateUserTree);
 router.route("/send-mail").post(authUser, sendMail);
+router.route("/	").get(authUser,activeUsers);
 
 
 module.exports = router;

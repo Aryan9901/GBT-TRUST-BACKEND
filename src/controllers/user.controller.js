@@ -74,6 +74,10 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 	if (!isPasswordValid) {
 		throw new ApiError(401, "Invalid user credentials");
 	}
+	
+	// Update lastActive field
+	user.lastActive = Date.now();
+	await user.save();
 
 	const token = await user.getJwtToken();
 
@@ -82,10 +86,12 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 		httpOnly: true,
 		// secure: true,
 	};
-
 	const userWithoutPassword = { ...user.toObject() };
 	delete userWithoutPassword.password;
 	delete userWithoutPassword.resetPasswordToken;
+
+	user.activeStatus = "active";
+	user.save();
 
 	return res
 		.status(200)
@@ -104,6 +110,11 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 
 // ?? Admin Logout Handler
 exports.logoutUser = catchAsyncErrors(async (req, res) => {
+	  // Update lastActive field
+	  req.user.lastActive = Date.now();
+	  req.user.activeStatus = "inactive";
+	  await req.user.save();
+	  
 	res.status(200)
 		.cookie("token", null, { expires: new Date(Date.now()), httpOnly: true })
 		.json(new ApiResponse(200, "Logged Out Successfully"));
@@ -347,56 +358,6 @@ exports.referralLinkGenerate = catchAsyncErrors(async (req, res) => {
 	}
 });
 
-// ?? Referral Link Access Handler
-// exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
-// 	const referralCode = req?.params?.referralCode.split("=")[1];
-// 	try {
-// 		if (!referralCode) {
-// 			throw new ApiError(404, "Referral code not found");
-// 		}
-// 		const owner = await User.findOne({ referralCode });
-// 		if (!owner) {
-// 			throw new ApiError(404, "Owner not found");
-// 		}
-
-// 		if (owner.refers.includes(req.user._id)) {
-// 			return res.status(200).json(new ApiResponse(200, owner, "Referral link already accessed"));
-// 		}
-
-// 		owner.refers.push(req.user._id); // Assuming the user ID is stored in req.user._id
-// 		await owner.save();
-
-// 		// Add parent reference to the user being referred
-// 		const userBeingReferred = await User.findById(req.user._id);
-// 		if (userBeingReferred) {
-// 			userBeingReferred.parent = owner._id;
-// 			await userBeingReferred.save();
-// 		}
-
-// 		if (owner.refers.length % 2 === 0) {
-// 			// Add referral bonus to owner's account
-// 			const referralBonus = 300; // Assuming the referral bonus is 300 rupees
-
-// 			// Add referral bonus to balance
-// 			owner.balance += referralBonus;
-
-// 			// Add referral bonus to totalBonus
-// 			owner.totalBonus += referralBonus;
-
-// 			// Add referral bonus to referralIncome
-// 			owner.referralIncome += referralBonus;
-
-// 			await owner.save();
-// 		}
-
-// 		// Redirect to home page or any other page after processing the referral
-// 		return res.status(200).json(new ApiResponse(200, owner, "Referral link accessed successfully"));
-// 	} catch (error) {
-// 		console.error("Error processing referral:", error);
-// 		return res.status(500).json({ error: "Internal Server Error" });
-// 	}
-// });
-
 exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 	const referralCode = req?.params?.referralCode.split("=")[1];
 	if (!referralCode) {
@@ -485,6 +446,26 @@ exports.epinGenerator = catchAsyncErrors(async (req, res) => {
 	}
 });
 
+// Controller function to generate the user tree
+exports.generateUserTree = catchAsyncErrors(async (req, res) => {
+	const { userId } = req.query; // Assuming the user ID is passed in the request parameters
+
+	// Generate the tree starting from the specified root user
+	const tree = await generateTree(userId, 0);
+
+	// Return the generated tree
+	res.status(200).json(new ApiResponse(200, tree, "Tree Generated Successfully"));
+});
+
+// Controller to Find Active users
+exports.activeUsers = catchAsyncErrors(async (req, res) => {
+	const users = await User.find({ activeStatus: 'active' });
+	if(!users) {
+		throw new ApiError(404, "No active users found");
+	}
+	res.status(200).json(new ApiResponse(200, users, "Active Users Found Successfully"));
+});
+
 // Function to generate ePINs based on Member ID and numberOfPins
 function generateEPINs(memberId, numberOfPins) {
 	const ePins = [];
@@ -528,7 +509,6 @@ function getBaseUrl(req) {
 }
 
 // !! tree formation
-
 // Function to recursively generate the tree nodes
 async function generateTree(userId, depth) {
 	const user = await User.findById(userId);
@@ -556,13 +536,24 @@ async function generateTree(userId, depth) {
 	};
 }
 
-// Controller function to generate the user tree
-exports.generateUserTree = catchAsyncErrors(async (req, res) => {
-	const { userId } = req.query; // Assuming the user ID is passed in the request parameters
+async function updateUserActivityStatus() {
+    const inactiveThreshold = 1; // 1 minutes of inactivity threshold
 
-	// Generate the tree starting from the specified root user
-	const tree = await generateTree(userId, 0);
+    const users = await User.find({ activeStatus: 'active' });
 
-	// Return the generated tree
-	res.status(200).json(new ApiResponse(200, tree, "Tree Generated Successfully"));
-});
+    const currentTime = new Date();
+
+    users.forEach(async user => {
+        const lastActiveTime = user.lastActive;
+        const timeDifference = currentTime - lastActiveTime;
+        const minutesDifference = timeDifference / (1000 * 60);
+
+        if (minutesDifference > inactiveThreshold) {
+            user.activeStatus = 'inactive';
+            await user.save();
+        }
+    });
+}
+
+// Run this function periodically using setInterval or a job scheduler
+setInterval(updateUserActivityStatus, 1000*60*60*3); // Check in every 3 hrs
