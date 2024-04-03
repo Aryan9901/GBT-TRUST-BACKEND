@@ -61,7 +61,7 @@ router.route("/rz/payment-verify").post(authUser, verifyRazorpayPayment);
 router.route("/rz/create-order").post(authUser, createRazorpayOrder);
 router.route("/generate/tree").post(authUser, generateUserTree);
 router.route("/send-mail").post(authUser, sendMail);
-router.route("/active-users").get(authUser,activeUsers);
+router.route("/active-users").get(authUser, activeUsers);
 
 
 module.exports = router;
