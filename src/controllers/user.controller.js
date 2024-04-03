@@ -1,6 +1,8 @@
 const User = require("../models/user.model");
 const Bank = require("../models/bank.model");
 const Epin = require("../models/epin.model.js");
+const upload = require("../middlewares/multer.middleware");
+const multer = require("multer");
 
 const { ApiError } = require("../utils/ApiError.js");
 const { ApiResponse } = require("../utils/ApiResponse.js");
@@ -16,6 +18,12 @@ const transporter = nodemailer.createTransport({
 		pass: process.env.NODEMAILER_PASSWORD,
 	},
 });
+
+const uploadFiles = upload.fields([
+	{ name: "photo", maxCount: 1 },
+	{ name: "aadhar", maxCount: 1 },
+	{ name: "pan", maxCount: 1 },
+]);
 
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
@@ -57,7 +65,6 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 
 	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
 });
-
 // ?? Admin Login Handler
 exports.loginUser = catchAsyncErrors(async (req, res) => {
 	const { email, password } = req.body;
@@ -559,8 +566,10 @@ async function updateUserActivityStatus() {
 
 // ?? setting the approval status
 exports.verifyUser = catchAsyncErrors(async (req, res) => {
-	const { id } = req.query.id;
+	const id = req.query.id;
 	const { status } = req.body;
+	console.log("*************************************************");
+	console.log(id, status);
 
 	const user = await User.findById(id);
 	if (!user) {
@@ -570,7 +579,7 @@ exports.verifyUser = catchAsyncErrors(async (req, res) => {
 	user.verified = status === true ? "approved" : "pending";
 	await user.save();
 	// Return the generated tree
-	res.status(200).json(new ApiResponse(200, "user" + status === true ? "approved" : "not approved"));
+	res.status(200).json(new ApiResponse(200, null, "user" + status === true ? "approved" : "not approved"));
 });
 
 // Run this function periodically using setInterval or a job scheduler

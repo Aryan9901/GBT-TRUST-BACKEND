@@ -16,6 +16,7 @@ const {
 	generateUserTree,
 	sendMail,
 	activeUsers,
+	verifyUser,
 } = require("../controllers/user.controller.js");
 const { authUser } = require("../middlewares/auth.middleware.js");
 // const { upload } = require("../middlewares/multer.middleware.js");
@@ -63,5 +64,6 @@ router.route("/rz/transfer/bank").post(authUser, transferToBank);
 router.route("/generate/tree").post(authUser, generateUserTree);
 router.route("/send-mail").post(authUser, sendMail);
 router.route("/active-users").get(authUser, activeUsers);
+router.route("/verify/user").post(authUser, verifyUser);
 
 module.exports = router;
