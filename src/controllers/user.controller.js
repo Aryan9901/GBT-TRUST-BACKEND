@@ -1,8 +1,6 @@
 const User = require("../models/user.model");
 const Bank = require("../models/bank.model");
 const Epin = require("../models/epin.model.js");
-const upload = require("../middlewares/multer.middleware");
-const multer = require("multer");
 
 const { ApiError } = require("../utils/ApiError.js");
 const { ApiResponse } = require("../utils/ApiResponse.js");
@@ -18,12 +16,6 @@ const transporter = nodemailer.createTransport({
 		pass: process.env.NODEMAILER_PASSWORD,
 	},
 });
-
-const uploadFiles = upload.fields([
-	{ name: "photo", maxCount: 1 },
-	{ name: "aadhar", maxCount: 1 },
-	{ name: "pan", maxCount: 1 },
-]);
 
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
@@ -546,8 +538,7 @@ async function generateTree(userId, depth) {
 }
 
 async function updateUserActivityStatus() {
-
-    const inactiveThreshold = 60; // 60 minutes of inactivity threshold
+	const inactiveThreshold = 60; // 60 minutes of inactivity threshold
 
 	const users = await User.find({ activeStatus: "active" });
 
@@ -586,4 +577,3 @@ exports.verifyUser = catchAsyncErrors(async (req, res) => {
 // Run this function periodically using setInterval or a job scheduler
 
 setInterval(updateUserActivityStatus, 1000 * 60 * 1); // Check in every 1/2 hrs
-
