@@ -5,6 +5,8 @@ const { generatedErrors } = require("./middlewares/errors");
 const { ApiError } = require("./utils/ApiError");
 const app = express();
 
+app.use(express.static("public"));
+
 app.use(
 	cors({
 		origin: "*",

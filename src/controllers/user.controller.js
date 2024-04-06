@@ -57,7 +57,6 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 
 	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
 });
-
 // ?? Admin Login Handler
 exports.loginUser = catchAsyncErrors(async (req, res) => {
 	const { email, password } = req.body;
@@ -539,8 +538,7 @@ async function generateTree(userId, depth) {
 }
 
 async function updateUserActivityStatus() {
-
-    const inactiveThreshold = 60; // 60 minutes of inactivity threshold
+	const inactiveThreshold = 60; // 60 minutes of inactivity threshold
 
 	const users = await User.find({ activeStatus: "active" });
 
@@ -560,8 +558,10 @@ async function updateUserActivityStatus() {
 
 // ?? setting the approval status
 exports.verifyUser = catchAsyncErrors(async (req, res) => {
-	const { id } = req.query.id;
+	const id = req.query.id;
 	const { status } = req.body;
+	console.log("*************************************************");
+	console.log(id, status);
 
 	const user = await User.findById(id);
 	if (!user) {
@@ -571,10 +571,9 @@ exports.verifyUser = catchAsyncErrors(async (req, res) => {
 	user.verified = status === true ? "approved" : "pending";
 	await user.save();
 	// Return the generated tree
-	res.status(200).json(new ApiResponse(200, "user" + status === true ? "approved" : "not approved"));
+	res.status(200).json(new ApiResponse(200, null, "user" + status === true ? "approved" : "not approved"));
 });
 
 // Run this function periodically using setInterval or a job scheduler
 
 setInterval(updateUserActivityStatus, 1000 * 60 * 1); // Check in every 1/2 hrs
-
