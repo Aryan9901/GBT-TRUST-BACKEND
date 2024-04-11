@@ -20,13 +20,11 @@ const transporter = nodemailer.createTransport({
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
 	const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan } = req.body;
-	console.log(firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan);
+	// console.log(firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan);
 
 	const existedUser = await User.findOne({
 		$or: [{ email }, { contact }],
 	});
-
-	console.log(existedUser);
 
 	if (existedUser) {
 		throw new ApiError(409, "User with the same email or contact already exists");
@@ -46,8 +44,6 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		panCard: pan,
 		avatar: photo,
 	});
-
-	console.log(user);
 
 	const createdUser = await User.findById(user._id).select("-password");
 
@@ -140,28 +136,28 @@ exports.updateProfile = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(404, "User not found");
 	}
 	// Update user fields if they are provided and not undefined
-	if (firstName !== undefined) {
+	if (firstName) {
 		user.firstName = firstName;
 	}
-	if (lastName !== undefined) {
+	if (lastName) {
 		user.lastName = lastName;
 	}
-	if (gender !== undefined) {
+	if (gender) {
 		user.gender = gender;
 	}
-	if (dob !== undefined) {
+	if (dob) {
 		user.dob = dob;
 	}
-	if (contact !== undefined) {
+	if (contact) {
 		user.contact = contact;
 	}
-	if (whatsapp !== undefined) {
+	if (whatsapp) {
 		user.whatsapp = whatsapp;
 	}
-	if (linkedin !== undefined) {
+	if (linkedin) {
 		user.linkedin = linkedin;
 	}
-	if (facebook !== undefined) {
+	if (facebook) {
 		user.facebook = facebook;
 	}
 	// Add conditions for other fields as needed
