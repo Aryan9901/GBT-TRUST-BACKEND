@@ -107,6 +107,12 @@ const userSchema = new Schema(
 			type: String,
 			// unique: true,
 		},
+		events: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: "event",
+			},
+		],
 		referralUrl: {
 			type: String,
 			// unique: true,
