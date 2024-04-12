@@ -119,7 +119,7 @@ const userSchema = new Schema(
 		},
 		refers: {
 			type: [Schema.Types.ObjectId],
-			ref: "referrals",
+			ref: "user",
 		},
 		parent: {
 			type: Schema.Types.ObjectId,

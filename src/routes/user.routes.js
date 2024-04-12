@@ -18,6 +18,7 @@ const {
 	sendMail,
 	activeUsers,
 	verifyUser,
+	getTeamMembers,
 } = require("../controllers/user.controller.js");
 const { authUser } = require("../middlewares/auth.middleware.js");
 // const { upload } = require("../middlewares/multer.middleware.js");
@@ -65,5 +66,6 @@ router.route("/generate/tree").post(authUser, generateUserTree);
 router.route("/send-mail").post(authUser, sendMail);
 router.route("/active-users").get(authUser, activeUsers);
 router.route("/verify/user").post(authUser, verifyUser);
+router.route("/get/team").get(authUser, getTeamMembers);
 
 module.exports = router;
