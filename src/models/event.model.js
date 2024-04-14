@@ -47,7 +47,7 @@ const eventSchema = new Schema(
 
 		status: {
 			type: String,
-			enum: ["completed", "notapproved", "ongoing"],
+			enum: ["approved", "completed", "notapproved", "ongoing"],
 			default: "notapproved",
 		},
 		eventManager: {

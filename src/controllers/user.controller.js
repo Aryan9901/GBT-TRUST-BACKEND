@@ -197,6 +197,15 @@ exports.updateProfile = catchAsyncErrors(async (req, res) => {
 	res.status(200).json(new ApiResponse(200, user, "Profile updated successfully"));
 });
 
+// ?? get team details
+exports.getTeamMembers = catchAsyncErrors(async (req, res) => {
+	const teams = await User.findById(req.user._id).populate("refers");
+	if (!teams) {
+		throw new ApiError(404, "teams not found");
+	}
+	res.status(200).json(new ApiResponse(200, { success: true, teams: teams.refers }));
+});
+
 // ?? Team Rising Star Handler
 exports.risingStars = catchAsyncErrors(async (req, res) => {
 	const users = await User.find({ role: "user" }).sort({ referralIncome: -1 }).limit(10);

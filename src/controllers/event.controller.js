@@ -18,8 +18,10 @@ exports.createEventRequest = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(400, "Missing required fields");
 	}
 
+	const eventDateTime = new Date(`${eventDate}T${eventTime}`);
+
 	// Check if the eventDate is in the future
-	if (new Date(eventDate) < new Date()) {
+	if (eventDateTime < new Date() - 1) {
 		throw new ApiError(400, "Event date cannot be in the past");
 	}
 
@@ -52,7 +54,7 @@ exports.createEventRequest = catchAsyncErrors(async (req, res) => {
 		eventPurpose,
 		eventBudget,
 		peopleJoin,
-		eventDate,
+		eventDate: eventDateTime,
 		eventTime,
 		eventDuration,
 		eventManager,
@@ -109,7 +111,9 @@ exports.createEventRequest = catchAsyncErrors(async (req, res) => {
 
 exports.getAllEvents = catchAsyncErrors(async (req, res) => {
 	// Create a new event object
-	const events = await Event.find({});
+	const events = await Event.find({}).populate("eventManager");
+
+	console.log(events);
 
 	// Validate the event
 	if (!events) {
@@ -117,4 +121,25 @@ exports.getAllEvents = catchAsyncErrors(async (req, res) => {
 	}
 
 	res.status(201).json(new ApiResponse(201, events, ""));
+});
+
+exports.acceptEvent = catchAsyncErrors(async (req, res) => {
+	// Create a new event object
+	const id = req?.query?.id;
+
+	console.log(id);
+
+	const event = await Event.findById(id);
+
+	if (!event) {
+		throw new ApiError(404, "Event not found");
+	}
+
+	console.log(event);
+
+	event.status = "approved";
+
+	await event.save();
+
+	res.status(201).json(new ApiResponse(201, event, "Event Accepted Successfully"));
 });
