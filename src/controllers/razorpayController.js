@@ -1,5 +1,6 @@
 // const axios = require('axios');
 const Razorpay = require("razorpay");
+const axios = require("axios");
 const { ApiError } = require("../utils/ApiError.js");
 const { ApiResponse } = require("../utils/ApiResponse.js");
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors.js");
@@ -113,11 +114,40 @@ const updatePlan = async (req, res) => {
 };
 
 const transferToBank = catchAsyncErrors(async (req, res) => {
-	const { payoutPayload } = req.body;
-	const response = await instance.transfers.create(payoutPayload);
-	console.log("Payout initiated:", response);
-	// Sending success response
-	res.status(200).json(new ApiResponse(200, "Transferred to bank successfully"));
+	const { accountNumber, ifscCode, accountHolderName, amount, bankName, purpose } = req.body;
+	console.log("hello");
+	const payload = {
+		account: {
+			account_number: accountNumber,
+			name: accountHolderName,
+			ifsc: ifscCode,
+			bank_name: "Bank Name", // You can fetch this dynamically using IFSC code API
+		},
+		amount: amount * 100, // Amount in paisa
+		currency: "INR",
+	};
+
+	try {
+		const response = await axios.post("https://api.razorpay.com/v1/payouts", payload, {
+			auth: {
+				username: process.env.RZ_ID,
+				password: process.env.RZ_KEY_SECRET,
+			},
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		console.log("Payout initiated:", response.data);
+
+		// Sending success response
+		res.status(200).json(new ApiResponse(200, "Transferred to bank successfully"));
+	} catch (error) {
+		console.error("Error initiating bank transfer:", error.response ? error.response.data : error.message);
+
+		// Sending error response
+		res.status(500).json(new ApiResponse(500, "Failed to transfer to bank", error.message));
+	}
 });
 
 module.exports = {
