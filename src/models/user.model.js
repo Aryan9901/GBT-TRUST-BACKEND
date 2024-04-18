@@ -101,7 +101,11 @@ const userSchema = new Schema(
 		},
 		rank: {
 			type: String,
-			default: "Silver",
+			default: "Joining",
+		},
+		level: {
+			type: String,
+			default: "1",
 		},
 		referralCode: {
 			type: String,
@@ -118,8 +122,18 @@ const userSchema = new Schema(
 			// unique: true,
 		},
 		refers: {
-			type: [Schema.Types.ObjectId],
-			ref: "user",
+			type: [
+				{
+					type: Schema.Types.ObjectId,
+					ref: "user",
+				},
+			],
+			validate: {
+				validator: function (v) {
+					return v.length <= 2;
+				},
+				message: "Refers array cannot exceed a length of 2",
+			},
 		},
 		parent: {
 			type: Schema.Types.ObjectId,
