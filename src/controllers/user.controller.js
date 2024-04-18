@@ -410,10 +410,6 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(401, "Referral link already accessed");
 	}
 
-	if (owner.refers.length > 2) {
-		throw new ApiError(402, "A use can refer maximum of 2 user only");
-	}
-
 	owner.refers.push(req.user._id); // Assuming the user ID is stored in
 	owner.referralIncome += 300;
 	owner.balance += 300;

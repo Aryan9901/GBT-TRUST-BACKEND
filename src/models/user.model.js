@@ -128,12 +128,6 @@ const userSchema = new Schema(
 					ref: "user",
 				},
 			],
-			validate: {
-				validator: function (v) {
-					return v.length <= 2;
-				},
-				message: "Refers array cannot exceed a length of 2",
-			},
 		},
 		parent: {
 			type: Schema.Types.ObjectId,
