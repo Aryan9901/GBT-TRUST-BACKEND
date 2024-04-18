@@ -1,5 +1,5 @@
-const User = require("../models/user.model");
-const Bank = require("../models/bank.model");
+const User = require("../models/user.model.js");
+const Bank = require("../models/bank.model.js");
 const Epin = require("../models/epin.model.js");
 
 const { ApiError } = require("../utils/ApiError.js");
@@ -7,8 +7,8 @@ const { ApiResponse } = require("../utils/ApiResponse.js");
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors.js");
 const Team = require("../models/team.model.js");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
 
+const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
 	service: "Gmail",
 	auth: {
@@ -257,6 +257,34 @@ exports.allUsers = catchAsyncErrors(async (req, res) => {
 	return res.status(200).json(new ApiResponse(200, users, "All Users Details"));
 });
 
+// ?? get all users rank wise below the current user
+exports.getAllUserBelow = catchAsyncErrors(async (req, res) => {
+	const id = req.query.id || req.user._id;
+	const users = await fetchReferralUsers(id);
+
+	if (!users.length) {
+		throw new ApiError(404, "No referred users found");
+	}
+
+	return res.status(200).json(new ApiResponse(200, users, "Referred Users Details"));
+});
+
+async function fetchReferralUsers(userId, users = []) {
+	const user = await User.findById(userId).populate("refers");
+
+	if (!user) {
+		return [];
+	}
+
+	users.push(user);
+
+	for (const referredUser of user.refers) {
+		await fetchReferralUsers(referredUser._id, users);
+	}
+
+	return users;
+}
+
 // ?? TEAM CONTROLLERS
 
 // ? GROUP CREATION
@@ -374,11 +402,24 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(404, "Owner not found");
 	}
 
-	if (owner.refers.includes(req.user._id)) {
-		return res.status(200).json(new ApiResponse(200, owner, "Referral link already accessed"));
+	if (owner._id === req.user._id) {
+		throw new ApiError(404, "User cannot refer itself");
 	}
 
-	owner.refers.push(req.user._id); // Assuming the user ID is stored in req.user._id
+	if (owner.refers.includes(req.user._id)) {
+		throw new ApiError(401, "Referral link already accessed");
+	}
+
+	if (owner.refers.length > 2) {
+		throw new ApiError(402, "A use can refer maximum of 2 user only");
+	}
+
+	owner.refers.push(req.user._id); // Assuming the user ID is stored in
+	owner.referralIncome += 300;
+	owner.balance += 300;
+
+	// Add referral bonus to totalBonus
+	owner.totalBonus += 300;
 	await owner.save();
 
 	// Add parent reference to the user being referred
@@ -388,7 +429,7 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		await userBeingReferred.save();
 	}
 
-	if (owner.refers.length % 2 === 0) {
+	if (owner.refers.length / 2 === 0) {
 		// Add referral bonus to owner's account
 		const referralBonus = 300; // Assuming the referral bonus is 300 rupees
 
@@ -399,7 +440,6 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		owner.totalBonus += referralBonus;
 
 		// Add referral bonus to referralIncome
-		owner.referralIncome += referralBonus;
 
 		await owner.save();
 
@@ -582,3 +622,5 @@ exports.verifyUser = catchAsyncErrors(async (req, res) => {
 // Run this function periodically using setInterval or a job scheduler
 
 setInterval(updateUserActivityStatus, 1000 * 60 * 1); // Check in every 1/2 hrs
+
+// 192.168.93.164
