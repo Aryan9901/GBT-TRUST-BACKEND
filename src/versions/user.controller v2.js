@@ -19,39 +19,41 @@ const transporter = nodemailer.createTransport({
 
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
-	const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan } = req.body;
-	// console.log(firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan);
+	try {
+		const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan } = req.body;
+		// console.log(firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan);
+		const existedUser = await User.findOne({
+			$or: [{ email }, { contact }],
+		});
 
-	const existedUser = await User.findOne({
-		$or: [{ email }, { contact }],
-	});
+		if (existedUser) {
+			throw new ApiError(409, "User with the same email or contact already exists");
+		}
 
-	if (existedUser) {
-		throw new ApiError(409, "User with the same email or contact already exists");
+		const user = await User.create({
+			firstName,
+			lastName,
+			email,
+			contact,
+			password,
+			role: role || "user",
+			city,
+			postalCode,
+			state: state,
+			aadharCard: aadhar,
+			panCard: pan,
+			avatar: photo,
+		});
+		const createdUser = await User.findById(user._id).select("-password");
+
+		if (!createdUser) {
+			throw new ApiError(500, "Something went wrong while registering the user");
+		}
+
+		return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
+	} catch (error) {
+		console.error(error);
 	}
-
-	const user = await User.create({
-		firstName,
-		lastName,
-		email,
-		contact,
-		password,
-		role: role || "user",
-		city,
-		postalCode,
-		state: state,
-		aadharCard: aadhar,
-		panCard: pan,
-		avatar: photo,
-	});
-
-	const createdUser = await User.findById(user._id).select("-password");
-
-	if (!createdUser) {
-		throw new ApiError(500, "Something went wrong while registering the user");
-	}
-
-	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
 });
 // ?? Admin Login Handler
 exports.loginUser = catchAsyncErrors(async (req, res) => {
@@ -62,7 +64,7 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 	const user = await User.findOne({
 		email,
 	}).select("+password");
-	console.log(user);
+	// console.log(user);
 	if (!user) {
 		throw new ApiError(404, "User does not exist");
 	}
@@ -257,34 +259,6 @@ exports.allUsers = catchAsyncErrors(async (req, res) => {
 	return res.status(200).json(new ApiResponse(200, users, "All Users Details"));
 });
 
-// ?? get all users rank wise below the current user
-exports.getAllUserBelow = catchAsyncErrors(async (req, res) => {
-	const id = req.query.id || req.user._id;
-	const users = await fetchReferralUsers(id);
-
-	if (!users.length) {
-		throw new ApiError(404, "No referred users found");
-	}
-
-	return res.status(200).json(new ApiResponse(200, users, "Referred Users Details"));
-});
-
-async function fetchReferralUsers(userId, users = []) {
-	const user = await User.findById(userId).populate("refers");
-
-	if (!user) {
-		return [];
-	}
-
-	users.push(user);
-
-	for (const referredUser of user.refers) {
-		await fetchReferralUsers(referredUser._id, users);
-	}
-
-	return users;
-}
-
 // ?? TEAM CONTROLLERS
 
 // ? GROUP CREATION
@@ -397,67 +371,195 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 	if (!referralCode) {
 		throw new ApiError(404, "Referral code not found");
 	}
+
+	// find the owner who refers
 	const owner = await User.findOne({ referralCode });
+	const user = await User.findById(req.user._id);
+
 	if (!owner) {
 		throw new ApiError(404, "Owner not found");
 	}
 
-	if (owner._id === req.user._id) {
-		throw new ApiError(404, "User cannot refer itself");
+	if (!user) {
+		throw new ApiError(404, "user not found");
 	}
 
 	if (owner.refers.includes(req.user._id)) {
-		throw new ApiError(401, "Referral link already accessed");
+		return res.status(200).json(new ApiResponse(200, owner, "Referral link already accessed"));
+	}
+
+	if (owner.refers.length > 2) {
+		return res.status(200).json(new ApiResponse(301, owner, "A use can refer maximum of 2 user only"));
 	}
 
 	owner.refers.push(req.user._id); // Assuming the user ID is stored in
-	owner.referralIncome += 300;
-	owner.balance += 300;
 
-	// Add referral bonus to totalBonus
-	owner.totalBonus += 300;
-	await owner.save();
-
-	// Add parent reference to the user being referred
-	const userBeingReferred = await User.findById(req.user._id);
-	if (userBeingReferred) {
-		userBeingReferred.parent = owner._id;
-		await userBeingReferred.save();
-	}
-
-	if (owner.refers.length / 2 === 0) {
-		// Add referral bonus to owner's account
-		const referralBonus = 300; // Assuming the referral bonus is 300 rupees
-
+	if (owner.refers.length === 2) {
+		console.log(owner.firstName);
+		// const referralBonus = 300;
+		// owner.referralIncome += 300;
 		// Add referral bonus to balance
-		owner.balance += referralBonus;
-
+		// owner.balance += referralBonus;
 		// Add referral bonus to totalBonus
-		owner.totalBonus += referralBonus;
+		// owner.totalBonus += referralBonus;
 
-		// Add referral bonus to referralIncome
-
-		await owner.save();
-
-		// Add referral bonus to parent and their parent recursively
-		let parent = owner.parent;
-		let bonusToParent = referralBonus / 2;
-		while (parent) {
-			const parentUser = await User.findById(parent);
-			if (parentUser) {
-				parentUser.balance += bonusToParent;
-				parentUser.totalBonus += bonusToParent;
-				parentUser.referralIncome /= bonusToParent;
-				await parentUser.save();
-			}
-			parent = parentUser.parent;
-			bonusToParent /= 2; // Halve the bonus for the next parent
-		}
+		const top = await gotToTop(owner);
+		console.log(top._d);
+		await removeAllCredit(top._id);
+		await giveParentCredit(top._id);
 	}
+
+	user.parent = owner._id;
+	await user.save();
+	await owner.save();
 
 	// Redirect to home page or any other page after processing the referral
 	return res.status(200).json(new ApiResponse(200, owner, "Referral link accessed successfully"));
 });
+
+// !! adding money to parent
+
+const gotToTop = async (owner) => {
+	if (!owner) {
+		return;
+	}
+	let parent = owner.parent;
+	let rootParent = owner;
+	while (parent) {
+		const parentUser = await User.findById(parent);
+		parent = parentUser.parent;
+		if (!parent) {
+			rootParent = parentUser;
+		}
+	}
+	return rootParent;
+};
+
+const removeAllCredit = async (root) => {
+	console.log("root user id" + root);
+	const owner = await User.findById(root);
+	if (owner.balance) {
+		owner.balance = 0;
+	}
+	if (owner.totalBonus) {
+		owner.totalBonus = 0;
+	}
+
+	if (owner.referralIncome) {
+		owner.referralIncome = 0;
+	}
+	await owner.save();
+
+	if (owner?.refers.length === 0) {
+		return 1;
+	}
+
+	if (owner.refers.length === 1) {
+		giveParentCredit(owner.refers[0]);
+	}
+
+	giveParentCredit(owner.refers[0]);
+	giveParentCredit(owner.refers[1]);
+};
+
+// const giveParentCredit = async (owner) => {
+// 	console.log(owner.firstName);
+// 	let parent = owner.parent;
+// 	const referralBonus = 300;
+// 	let bonusToParent = referralBonus;
+// 	while (parent) {
+// 		const parentUser = await User.findById(parent);
+// 		console.log(parentUser.firstName);
+// 		if (parentUser) {
+// 			const refer1 = await User.findById(parentUser.refers[0]);
+// 			console.log(refer1.firstName);
+// 			const refer2 = await User.findById(parentUser.refers[1]);
+// 			console.log(refer2.firstName);
+// 			console.log(refer1.refers.length === 2 && refer2.refers.length === 2);
+// 			if (refer1.refers.length === 2 && refer2.refers.length === 2) {
+// 				parentUser.balance += bonusToParent;
+// 				parentUser.totalBonus += bonusToParent;
+// 				parentUser.referralIncome /= bonusToParent;
+// 				await parentUser.save();
+// 			}
+// 		}
+// 		parent = parentUser.parent;
+// 	}
+// };
+
+const giveParentCredit = async (user) => {
+	let bonus = 300;
+	const owner = await User.findById(user);
+	if (owner.refers.length === 0) {
+		return 1;
+	}
+	let l = giveParentCredit(owner.refers[0]);
+	let r = giveParentCredit(owner.refers[1]);
+
+	if (l === r && l > 1 && r > 1) {
+		bonus = 300 * r;
+	}
+	if (l === r && l === 1 && r === 1) {
+		bonus = 300;
+	}
+	owner.balance += bonus;
+	owner.totalBonus += bonus;
+	owner.referralIncome += bonus;
+	await owner.save();
+
+	return bonus / 300;
+};
+
+// const giveParentCredit = async (owner) => {
+// 	if (!owner) {
+// 		return; // Stop recursion if owner is null
+// 	}
+
+// 	console.log(owner.firstName);
+// 	const referralBonus = 300;
+// 	let bonusToParent = referralBonus;
+
+// 	let leftComplete = false;
+// 	let rightComplete = false;
+
+// 	const leftChild = await User.findById(owner.refers[0]);
+// 	const rightChild = await User.findById(owner.refers[1]);
+
+// 	// Check if both left and right children exist
+// 	if (leftChild && rightChild) {
+// 		// Check if both left and right children are complete binary trees
+// 		leftComplete = await isCompleteBinaryTree(leftChild);
+// 		rightComplete = await isCompleteBinaryTree(rightChild);
+// 	}
+
+// 	// Add referral bonus to the current node if both sides are complete binary trees
+// 	if (leftComplete && rightComplete) {
+// 		owner.balance += bonusToParent;
+// 		owner.totalBonus += bonusToParent;
+// 		owner.referralIncome += bonusToParent;
+// 		await owner.save();
+// 	}
+
+// 	// Continue recursively checking for the next level
+// 	await giveParentCredit(await User.findById(owner.parent));
+// };
+
+// const isCompleteBinaryTree = async (node) => {
+// 	if (!node) {
+// 		return true; // An empty tree is considered complete
+// 	}
+
+// 	const leftChild = await User.findById(node.refers[0]);
+// 	const rightChild = await User.findById(node.refers[1]);
+
+// 	// If left child is null, right child must also be null
+// 	if (!leftChild && rightChild) {
+// 		return false;
+// 	}
+
+// 	// Recursively check for left and right subtrees
+// 	return (await isCompleteBinaryTree(leftChild)) && (await isCompleteBinaryTree(rightChild));
+// };
 
 // ?? Epin Generator Handler
 exports.epinGenerator = catchAsyncErrors(async (req, res) => {
@@ -618,5 +720,3 @@ exports.verifyUser = catchAsyncErrors(async (req, res) => {
 // Run this function periodically using setInterval or a job scheduler
 
 setInterval(updateUserActivityStatus, 1000 * 60 * 1); // Check in every 1/2 hrs
-
-// 192.168.93.164

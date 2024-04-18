@@ -257,34 +257,6 @@ exports.allUsers = catchAsyncErrors(async (req, res) => {
 	return res.status(200).json(new ApiResponse(200, users, "All Users Details"));
 });
 
-// ?? get all users rank wise below the current user
-exports.getAllUserBelow = catchAsyncErrors(async (req, res) => {
-	const id = req.query.id || req.user._id;
-	const users = await fetchReferralUsers(id);
-
-	if (!users.length) {
-		throw new ApiError(404, "No referred users found");
-	}
-
-	return res.status(200).json(new ApiResponse(200, users, "Referred Users Details"));
-});
-
-async function fetchReferralUsers(userId, users = []) {
-	const user = await User.findById(userId).populate("refers");
-
-	if (!user) {
-		return [];
-	}
-
-	users.push(user);
-
-	for (const referredUser of user.refers) {
-		await fetchReferralUsers(referredUser._id, users);
-	}
-
-	return users;
-}
-
 // ?? TEAM CONTROLLERS
 
 // ? GROUP CREATION
@@ -402,20 +374,13 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(404, "Owner not found");
 	}
 
-	if (owner._id === req.user._id) {
-		throw new ApiError(404, "User cannot refer itself");
-	}
-
 	if (owner.refers.includes(req.user._id)) {
-		throw new ApiError(401, "Referral link already accessed");
+		return res.status(200).json(new ApiResponse(200, owner, "Referral link already accessed"));
 	}
 
 	owner.refers.push(req.user._id); // Assuming the user ID is stored in
-	owner.referralIncome += 300;
-	owner.balance += 300;
-
-	// Add referral bonus to totalBonus
-	owner.totalBonus += 300;
+	owner.referralIncome += referralBonus;
+	req.user._id;
 	await owner.save();
 
 	// Add parent reference to the user being referred
@@ -425,7 +390,7 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		await userBeingReferred.save();
 	}
 
-	if (owner.refers.length / 2 === 0) {
+	if (owner.refers.length % 2 === 0) {
 		// Add referral bonus to owner's account
 		const referralBonus = 300; // Assuming the referral bonus is 300 rupees
 
@@ -618,5 +583,3 @@ exports.verifyUser = catchAsyncErrors(async (req, res) => {
 // Run this function periodically using setInterval or a job scheduler
 
 setInterval(updateUserActivityStatus, 1000 * 60 * 1); // Check in every 1/2 hrs
-
-// 192.168.93.164
