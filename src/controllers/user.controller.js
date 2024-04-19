@@ -9,6 +9,7 @@ const Team = require("../models/team.model.js");
 const crypto = require("crypto");
 
 const nodemailer = require("nodemailer");
+
 const transporter = nodemailer.createTransport({
 	service: "Gmail",
 	auth: {
