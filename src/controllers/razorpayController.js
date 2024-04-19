@@ -121,13 +121,35 @@ const transferToBank = catchAsyncErrors(async (req, res) => {
 			account_number: accountNumber,
 			name: accountHolderName,
 			ifsc: ifscCode,
-			bank_name: "Bank Name", // You can fetch this dynamically using IFSC code API
+			bank_name: bankName, // You can fetch this dynamically using IFSC code API
 		},
 		amount: amount * 100, // Amount in paisa
 		currency: "INR",
 	};
 
+	const fundOptions = {
+		contact_id: "7654562783",
+		account_type: "savings",
+		bank_account: {
+			name: accountHolderName,
+			ifsc: ifscCode,
+			account_number: "765432123456789",
+		},
+	};
+
 	try {
+		const res = await axios.post("https://api.razorpay.com/v1/fund_accounts", fundOptions, {
+			auth: {
+				username: process.env.RZ_ID,
+				password: process.env.RZ_KEY_SECRET,
+			},
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		console.log(res);
+
 		const response = await axios.post("https://api.razorpay.com/v1/payouts", payload, {
 			auth: {
 				username: process.env.RZ_ID,

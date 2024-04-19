@@ -24,11 +24,13 @@ app.use(cookieParser());
 const userRouter = require("./routes/user.routes.js");
 const eventsRouter = require("./routes/event.routes.js");
 const bankRouter = require("./routes/bank.routes.js");
+const transferRouter = require("./routes/transfer.routes.js");
 
 //routes declare
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/user", eventsRouter);
 app.use("/api/v1/user", bankRouter);
+app.use("/api/v1/user", transferRouter);
 
 app.get("/", (req, res) => {
 	res.send("Welcome to the GBT API.");
@@ -37,6 +39,7 @@ app.get("/", (req, res) => {
 app.all("*", (req, res, next) => {
 	next(new ApiError(404, `Requested URL Not Found ${req.url}`));
 });
+
 app.use(generatedErrors);
 
 module.exports = app;
