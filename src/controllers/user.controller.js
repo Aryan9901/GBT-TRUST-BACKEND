@@ -7,6 +7,7 @@ const { ApiResponse } = require("../utils/ApiResponse.js");
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors.js");
 const Team = require("../models/team.model.js");
 const crypto = require("crypto");
+const fs = require("fs");
 
 const nodemailer = require("nodemailer");
 
@@ -20,8 +21,16 @@ const transporter = nodemailer.createTransport({
 
 // ?? Admin Register Handler
 exports.registerUser = catchAsyncErrors(async (req, res) => {
-	const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan } = req.body;
-	// console.log(firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode, photo, aadhar, pan);
+	const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode } = req.body;
+
+	if(!firstName || !lastName || !email || !contact || !city || !postalCode || !state || !password) {
+		throw new ApiError(400, "All fields are required");
+	}
+
+	const avatar = req.files['avatar'][0].filename;
+    const aadhar = req.files['aadhar'][0].filename;
+    const pan = req.files['pan'][0].filename;
+	console.log(aadhar,pan,avatar)
 
 	const existedUser = await User.findOne({
 		$or: [{ email }, { contact }],
@@ -30,6 +39,7 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 	if (existedUser) {
 		throw new ApiError(409, "User with the same email or contact already exists");
 	}
+	console.log(2);
 
 	const user = await User.create({
 		firstName,
@@ -43,14 +53,25 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		state: state,
 		aadharCard: aadhar,
 		panCard: pan,
-		avatar: photo,
+		avatar:avatar,
 	});
+	console.log(3);
+
+	if (!user) {
+		throw new ApiError(500, "Something went wrong while registering the user");
+		// fs.unlinkSync(`./public/uploads/${aadhar}`);
+		// fs.unlinkSync(`./public/uploads/${pan}`);
+		// fs.unlinkSync(`./public/uploads/${avatar}`);
+	}
+
+
 
 	const createdUser = await User.findById(user._id).select("-password");
 
 	if (!createdUser) {
 		throw new ApiError(500, "Something went wrong while registering the user");
 	}
+	console.log(4);
 
 	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
 });

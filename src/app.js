@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const { generatedErrors } = require("./middlewares/errors");
 const { ApiError } = require("./utils/ApiError");
 const app = express();
+const path = require('path');
 
 app.use(express.static("public"));
 
@@ -31,6 +32,9 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/user", eventsRouter);
 app.use("/api/v1/user", bankRouter);
 app.use("/api/v1/user", transferRouter);
+
+// ?? multer image saving
+app.use("/", express.static(path.join(__dirname, "..", "/public", "/uploads")));
 
 app.get("/", (req, res) => {
 	res.send("Welcome to the GBT API.");
