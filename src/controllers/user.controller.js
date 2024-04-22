@@ -75,6 +75,7 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 
 	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
 });
+
 // ?? Admin Login Handler
 exports.loginUser = catchAsyncErrors(async (req, res) => {
 	const { email, password } = req.body;
