@@ -27,6 +27,9 @@ const bankSchema = new Schema(
 			enum: ["saving", "current"],
 			required: [true, "Account Type is required"],
 		},
+		bankName: {
+			type: String,
+		},
 	},
 	{ timestamps: true }
 );
