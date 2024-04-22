@@ -59,9 +59,9 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 
 	if (!user) {
 		throw new ApiError(500, "Something went wrong while registering the user");
-		// fs.unlinkSync(`./public/uploads/${aadhar}`);
-		// fs.unlinkSync(`./public/uploads/${pan}`);
-		// fs.unlinkSync(`./public/uploads/${avatar}`);
+		fs.unlinkSync(`./public/uploads/${aadhar}`);
+		fs.unlinkSync(`./public/uploads/${pan}`);
+		fs.unlinkSync(`./public/uploads/${avatar}`);
 	}
 
 
