@@ -34,6 +34,9 @@ const transferSchema = new Schema(
 			type: Schema.Types.ObjectId,
 			ref: "user",
 		},
+		upi: {
+			type: String,
+		},
 		amount: {
 			type: Number,
 			required: [true, "Amount is required"],
