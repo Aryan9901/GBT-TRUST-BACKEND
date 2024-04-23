@@ -23,14 +23,13 @@ const transporter = nodemailer.createTransport({
 exports.registerUser = catchAsyncErrors(async (req, res) => {
 	const { firstName, lastName, email, contact, city, postalCode, state, password, role, referralCode } = req.body;
 
-	if(!firstName || !lastName || !email || !contact || !city || !postalCode || !state || !password) {
+	if (!firstName || !lastName || !email || !contact || !city || !postalCode || !state || !password) {
 		throw new ApiError(400, "All fields are required");
 	}
 
-	const avatar = req.files['avatar'][0].filename;
-    const aadhar = req.files['aadhar'][0].filename;
-    const pan = req.files['pan'][0].filename;
-	console.log(aadhar,pan,avatar)
+	const avatar = req.files["avatar"][0].filename;
+	const aadhar = req.files["aadhar"][0].filename;
+	const pan = req.files["pan"][0].filename;
 
 	const existedUser = await User.findOne({
 		$or: [{ email }, { contact }],
@@ -39,7 +38,6 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 	if (existedUser) {
 		throw new ApiError(409, "User with the same email or contact already exists");
 	}
-	console.log(2);
 
 	const user = await User.create({
 		firstName,
@@ -53,25 +51,26 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		state: state,
 		aadharCard: aadhar,
 		panCard: pan,
-		avatar:avatar,
+		avatar: avatar,
 	});
-	console.log(3);
 
 	if (!user) {
-		throw new ApiError(500, "Something went wrong while registering the user");
 		fs.unlinkSync(`./public/uploads/${aadhar}`);
 		fs.unlinkSync(`./public/uploads/${pan}`);
 		fs.unlinkSync(`./public/uploads/${avatar}`);
+		throw new ApiError(500, "Something went wrong while registering the user");
 	}
 
+	const code = await generateReferralCode(user._id.toString());
 
+	user.referralCode = code;
+	await user.save();
 
 	const createdUser = await User.findById(user._id).select("-password");
 
 	if (!createdUser) {
 		throw new ApiError(500, "Something went wrong while registering the user");
 	}
-	console.log(4);
 
 	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
 });
@@ -420,7 +419,9 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 	if (!referralCode) {
 		throw new ApiError(404, "Referral code not found");
 	}
+	console.log(1);
 	const owner = await User.findOne({ referralCode });
+	console.log(owner);
 	if (!owner) {
 		throw new ApiError(404, "Owner not found");
 	}
@@ -433,36 +434,27 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(401, "Referral link already accessed");
 	}
 
-	owner.refers.push(req.user._id); // Assuming the user ID is stored in
-	owner.referralIncome += 300;
-	owner.balance += 300;
-
-	// Add referral bonus to totalBonus
-	owner.totalBonus += 300;
+	owner.refers.push(req.user._id);
 	await owner.save();
-
 	// Add parent reference to the user being referred
 	const userBeingReferred = await User.findById(req.user._id);
 	if (userBeingReferred) {
 		userBeingReferred.parent = owner._id;
 		await userBeingReferred.save();
 	}
-
-	if (owner.refers.length / 2 === 0) {
+	console.log(2);
+	// console.log(owner.refers.length / 2 === 0);
+	console.log(owner.refers.length);
+	if (owner.refers.length % 2 === 0) {
+		console.log(3);
 		// Add referral bonus to owner's account
-		const referralBonus = 300; // Assuming the referral bonus is 300 rupees
-
-		// Add referral bonus to balance
-		owner.balance += referralBonus;
-
-		// Add referral bonus to totalBonus
-		owner.totalBonus += referralBonus;
-
-		// Add referral bonus to referralIncome
+		const referralBonus = 300;
+		owner.referralIncome += 300;
+		owner.balance += 300;
+		owner.totalBonus += 300;
 
 		await owner.save();
-
-		// Add referral bonus to parent and their parent recursively
+		console.log(4);
 		let parent = owner.parent;
 		let bonusToParent = referralBonus / 2;
 		while (parent) {
@@ -470,12 +462,13 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 			if (parentUser) {
 				parentUser.balance += bonusToParent;
 				parentUser.totalBonus += bonusToParent;
-				parentUser.referralIncome /= bonusToParent;
+				parentUser.referralIncome += bonusToParent;
 				await parentUser.save();
 			}
 			parent = parentUser.parent;
 			bonusToParent /= 2; // Halve the bonus for the next parent
 		}
+		console.log(5);
 	}
 
 	// Redirect to home page or any other page after processing the referral
