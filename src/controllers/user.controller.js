@@ -58,7 +58,7 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		fs.unlinkSync(`./public/uploads/${aadhar}`);
 		fs.unlinkSync(`./public/uploads/${pan}`);
 		fs.unlinkSync(`./public/uploads/${avatar}`);
-		throw new ApiError(500, "Something went wrong while registering the user");
+		throw new ApiError(500, "Something went wrong while registering the user! Maybe an Internet Connection issue");
 	}
 
 	const code = await generateReferralCode(user._id.toString());
@@ -69,10 +69,10 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 	const createdUser = await User.findById(user._id).select("-password");
 
 	if (!createdUser) {
-		throw new ApiError(500, "Something went wrong while registering the user");
+		throw new ApiError(500, "Something went wrong while registering the user! Maybe an Internet Connection issue");
 	}
 
-	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered successfully"));
+	return res.status(201).json(new ApiResponse(200, { createdUser, referralCode }, "User registered"));
 });
 
 // ?? Admin Login Handler
@@ -86,7 +86,7 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 	}).select("+password");
 	console.log(user);
 	if (!user) {
-		throw new ApiError(404, "User does not exist");
+		throw new ApiError(404, "Invalid user credentials");
 	}
 
 	const isPasswordValid = await user.comparePassword(password);
@@ -123,7 +123,7 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 					token,
 					user: userWithoutPassword,
 				},
-				"User logged In Successfully"
+				"User logged In"
 			)
 		);
 });
@@ -155,7 +155,7 @@ exports.updateProfile = catchAsyncErrors(async (req, res) => {
 	// Find the user by userId
 	const user = await User.findById(userId);
 	if (!user) {
-		throw new ApiError(404, "User not found");
+		throw new ApiError(404, "Updation Failed");
 	}
 	// Update user fields if they are provided and not undefined
 	if (firstName) {
