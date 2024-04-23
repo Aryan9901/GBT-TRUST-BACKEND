@@ -44,23 +44,19 @@ const path = require("path");
 // );
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, `public/uploads`);
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
+	destination: function (req, file, cb) {
+		cb(null, `public/uploads`);
+	},
+	filename: function (req, file, cb) {
+		cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
+	},
 });
 
 const upload = multer({ storage: storage });
 
 // !! public routes --------------------------------
 router.route("/login").post(loginUser);
-router.route("/register").post(upload.fields([
-    { name: 'avatar' },
-    { name: 'aadhar' },
-    { name: 'pan' }
-]),registerUser);
+router.route("/register").post(upload.fields([{ name: "avatar" }, { name: "aadhar" }, { name: "pan" }]), registerUser);
 
 // !! secured routes --------------------------------
 router.route("/logout").post(authUser, logoutUser);
