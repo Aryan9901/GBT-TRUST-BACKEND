@@ -85,11 +85,11 @@ const userSchema = new Schema(
 		},
 		aadharCard: {
 			type: String,
-			// required: [true, "Aadhar Card is required"],
+			required: [true, "Aadhar Card is required"],
 		},
 		panCard: {
 			type: String,
-			// required: [true, "Pan Card is required"],
+			required: [true, "Pan Card is required"],
 		},
 		membershipPakage: {
 			type: String,
