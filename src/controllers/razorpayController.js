@@ -5,6 +5,7 @@ const { ApiError } = require("../utils/ApiError.js");
 const { ApiResponse } = require("../utils/ApiResponse.js");
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors.js");
 const User = require("../models/user.model.js");
+const { sendRegistrationConfirmation } = require("../utils/Nodemailer.js");
 require("dotenv").config();
 
 const instance = new Razorpay({
@@ -12,7 +13,7 @@ const instance = new Razorpay({
 	key_secret: process.env.RZ_KEY_SECRET,
 });
 
-const createRazorpayOrder = async (req, res) => {
+const createRazorpayOrder = async (req, res, next) => {
 	// console.log("id", process.env.RZ_ID);
 
 	try {
@@ -45,7 +46,7 @@ const createRazorpayOrder = async (req, res) => {
 	}
 };
 
-const verifyRazorpayPayment = async (req, res) => {
+const verifyRazorpayPayment = async (req, res,next) => {
 	try {
 		const { order_id, payment_id } = req.body;
 
@@ -53,13 +54,21 @@ const verifyRazorpayPayment = async (req, res) => {
 		instance.payments.capture(payment_id, 650 * 100, "INR", (err, response) => {
 			// console.log(response);
 			if (err) {
+				console.log(1);
 				console.error("Error verifying Razorpay payment:", err);
+				if(err.error.description == "This payment has already been captured"){
+					sendRegistrationConfirmation(req, res, next);
+					res.status(200).json({ success: true, message: "Payment already captured" });
+
+				}
 				res.status(200).json({ success: true, message: "Payment verification failed" });
 			} else {
+				console.log(2);
 				if (response.status === "captured") {
 					// Payment is successful
 					// You can update your database or perform other necessary actions here
-
+					console.log(req.body.email)
+					sendRegistrationConfirmation(req, res, next);
 					res.status(200).json({ success: true, message: "Payment verified successfully" });
 				} else {
 					// Payment failed
@@ -73,7 +82,7 @@ const verifyRazorpayPayment = async (req, res) => {
 	}
 };
 
-const updatePlan = async (req, res) => {
+const updatePlan = async (req, res,next) => {
 	try {
 		const { plan } = req.body;
 		const userId = req.user._id;
@@ -163,6 +172,7 @@ const transferToBank = catchAsyncErrors(async (req, res) => {
 
 		// Sending success response
 		res.status(200).json(new ApiResponse(200, "Transferred to bank successfully"));
+		
 	} catch (error) {
 		console.error("Error initiating bank transfer:", error.response ? error.response.data : error.message);
 
