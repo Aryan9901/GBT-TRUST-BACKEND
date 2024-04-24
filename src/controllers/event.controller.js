@@ -45,7 +45,7 @@ exports.createEventRequest = catchAsyncErrors(async (req, res) => {
 	// Convert the list of guest emails in array with type string when given with separated commas
 	if (guestEmails) {
 		parsedGuestEmails = guestEmails.split(",").map((email) => email.trim());
-		console.log("guestEmails : ", parsedGuestEmails);
+		// console.log("guestEmails : ", parsedGuestEmails);
 	}
 
 	// Create a new event object
@@ -113,7 +113,7 @@ exports.getAllEvents = catchAsyncErrors(async (req, res) => {
 	// Create a new event object
 	const events = await Event.find({}).populate("eventManager");
 
-	console.log(events);
+	// console.log(events);
 
 	// Validate the event
 	if (!events) {
@@ -127,7 +127,7 @@ exports.acceptEvent = catchAsyncErrors(async (req, res) => {
 	// Create a new event object
 	const id = req?.query?.id;
 
-	console.log(id);
+	// console.log(id);
 
 	const event = await Event.findById(id);
 
@@ -135,7 +135,7 @@ exports.acceptEvent = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(404, "Event not found");
 	}
 
-	console.log(event);
+	// console.log(event);
 
 	event.status = "approved";
 

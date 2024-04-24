@@ -14,7 +14,7 @@ const instance = new Razorpay({
 });
 
 const createRazorpayOrder = async (req, res) => {
-	console.log("id", process.env.RZ_ID);
+	// console.log("id", process.env.RZ_ID);
 
 	try {
 		const { amount, currency, receipt } = req.body;
@@ -78,9 +78,9 @@ const updatePlan = async (req, res) => {
 	try {
 		const { plan } = req.body;
 		const userId = req.user._id;
-		console.log("***************************************************************");
-		console.log(plan, userId);
-		console.log("***************************************************************");
+		// console.log("***************************************************************");
+		// console.log(plan, userId);
+		// console.log("***************************************************************");
 		// Validation
 		if (!plan || !userId) {
 			return res.status(400).json({ success: false, message: "Missing required fields." });
@@ -99,8 +99,8 @@ const updatePlan = async (req, res) => {
 		if (!validPlans.includes(plan)) {
 			return res.status(400).json({ success: false, message: "Invalid plan." });
 		}
-		console.log("****************************************************");
-		console.log("plan: " + plan);
+		// console.log("****************************************************");
+		// console.log("plan: " + plan);
 		// Update user plan
 		user.plan = plan;
 
@@ -116,7 +116,6 @@ const updatePlan = async (req, res) => {
 
 const transferToBank = catchAsyncErrors(async (req, res) => {
 	const { accountNumber, ifscCode, accountHolderName, amount, bankName, purpose } = req.body;
-	console.log("hello");
 	const payload = {
 		account: {
 			account_number: accountNumber,
@@ -149,7 +148,7 @@ const transferToBank = catchAsyncErrors(async (req, res) => {
 			},
 		});
 
-		console.log(res);
+		// console.log(res);
 
 		const response = await axios.post("https://api.razorpay.com/v1/payouts", payload, {
 			auth: {
@@ -161,7 +160,7 @@ const transferToBank = catchAsyncErrors(async (req, res) => {
 			},
 		});
 
-		console.log("Payout initiated:", response.data);
+		// console.log("Payout initiated:", response.data);
 
 		// Sending success response
 		res.status(200).json(new ApiResponse(200, "Transferred to bank successfully"));
