@@ -10,6 +10,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 
 const nodemailer = require("nodemailer");
+const { uploadOnCloudinary } = require("../utils/cloudinary.js");
 
 const transporter = nodemailer.createTransport({
 	service: "Gmail",
@@ -27,9 +28,25 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		throw new ApiError(400, "All fields are required");
 	}
 
-	const avatar = req.files["avatar"][0].filename;
-	const aadhar = req.files["aadhar"][0].filename;
-	const pan = req.files["pan"][0].filename;
+	const avatar = req.files["avatar"][0].path;
+	const aadhar = req.files["aadhar"][0].path;
+	const pan = req.files["pan"][0].path;
+
+	const uploadedAvatar = await uploadOnCloudinary(avatar);
+	const uploadedAadhar = await uploadOnCloudinary(aadhar);
+	const uploadedPan = await uploadOnCloudinary(pan);
+
+	console.log(uploadedAvatar);
+
+	if (!uploadedAvatar) {
+		throw new ApiError(400, "Avatar file is required");
+	}
+	if (!uploadedAadhar) {
+		throw new ApiError(400, "Aadhar Card is required");
+	}
+	if (!uploadedPan) {
+		throw new ApiError(400, "Pan Card is required");
+	}
 
 	const existedUser = await User.findOne({
 		$or: [{ email }, { contact }],
@@ -49,15 +66,15 @@ exports.registerUser = catchAsyncErrors(async (req, res) => {
 		city,
 		postalCode,
 		state: state,
-		aadharCard: aadhar,
-		panCard: pan,
-		avatar: avatar,
+		aadharCard: uploadedAadhar.url,
+		panCard: uploadedAadhar.url,
+		avatar: uploadedAvatar.url,
 	});
 
 	if (!user) {
-		fs.unlinkSync(`./public/uploads/${aadhar}`);
-		fs.unlinkSync(`./public/uploads/${pan}`);
-		fs.unlinkSync(`./public/uploads/${avatar}`);
+		// fs.unlinkSync(`./public/uploads/${aadhar}`);
+		// fs.unlinkSync(`./public/uploads/${pan}`);
+		// fs.unlinkSync(`./public/uploads/${avatar}`);
 		throw new ApiError(500, "Something went wrong while registering the user! Maybe an Internet Connection issue");
 	}
 
@@ -419,11 +436,13 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 	if (!referralCode) {
 		throw new ApiError(404, "Referral code not found");
 	}
-	// console.log(1);
 	const owner = await User.findOne({ referralCode });
 	console.log(owner);
 	if (!owner) {
 		throw new ApiError(404, "Owner not found");
+	}
+	if (owner.verified !== "approved") {
+		throw new ApiError(404, "user is not approved");
 	}
 
 	if (owner._id === req.user._id) {
@@ -442,11 +461,8 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		userBeingReferred.parent = owner._id;
 		await userBeingReferred.save();
 	}
-	console.log(2);
 	// console.log(owner.refers.length / 2 === 0);
-	console.log(owner.refers.length);
 	if (owner.refers.length % 2 === 0) {
-		console.log(3);
 		// Add referral bonus to owner's account
 		const referralBonus = 300;
 		owner.referralIncome += 300;
@@ -454,7 +470,6 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 		owner.totalBonus += 300;
 
 		await owner.save();
-		console.log(4);
 		let parent = owner.parent;
 		let bonusToParent = referralBonus / 2;
 		while (parent) {
@@ -468,7 +483,6 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 			parent = parentUser.parent;
 			bonusToParent /= 2; // Halve the bonus for the next parent
 		}
-		console.log(5);
 	}
 
 	// Redirect to home page or any other page after processing the referral
