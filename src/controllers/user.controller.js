@@ -84,7 +84,7 @@ exports.loginUser = catchAsyncErrors(async (req, res) => {
 	const user = await User.findOne({
 		email,
 	}).select("+password");
-	console.log(user);
+	// console.log(user);
 	if (!user) {
 		throw new ApiError(404, "Invalid user credentials");
 	}
@@ -251,7 +251,7 @@ exports.sendMail = catchAsyncErrors(async (req, res) => {
 			throw new ApiError(404, error, "Email not sent");
 		}
 	});
-	console.log(information);
+	// console.log(information);
 	return res.status(200).json(new ApiResponse(200, information, "Email sent successfully"));
 });
 
@@ -377,7 +377,7 @@ exports.referralCodeGenerate = catchAsyncErrors(async (req, res) => {
 		if (req.user.referralCode !== undefined) {
 			return res.status(200).json(new ApiResponse(200, req.user.referralCode, "Referral code already generated"));
 		}
-		console.log(req.user._id.toString());
+		// console.log(req.user._id.toString());
 		const { _id } = req.user;
 		const userId = _id.toString();
 		// Generate a unique referral code
@@ -419,7 +419,7 @@ exports.referralLinkAccess = catchAsyncErrors(async (req, res) => {
 	if (!referralCode) {
 		throw new ApiError(404, "Referral code not found");
 	}
-	console.log(1);
+	// console.log(1);
 	const owner = await User.findOne({ referralCode });
 	console.log(owner);
 	if (!owner) {
