@@ -5,6 +5,7 @@ const { ApiError } = require("../utils/ApiError.js");
 const { ApiResponse } = require("../utils/ApiResponse.js");
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors.js");
 const User = require("../models/user.model.js");
+const { sendRegistrationConfirmation } = require("../utils/Nodemailer.js");
 require("dotenv").config();
 
 const instance = new Razorpay({
@@ -164,6 +165,8 @@ const transferToBank = catchAsyncErrors(async (req, res) => {
 
 		// Sending success response
 		res.status(200).json(new ApiResponse(200, "Transferred to bank successfully"));
+		console.log(req.body.email)
+		sendRegistrationConfirmation(req, res, next);
 	} catch (error) {
 		console.error("Error initiating bank transfer:", error.response ? error.response.data : error.message);
 
