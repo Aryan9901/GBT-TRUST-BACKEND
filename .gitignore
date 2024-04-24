@@ -7,7 +7,6 @@ scripts/flow/*/.flowconfig
 .grunt
 _SpecRunner.html
 __benchmarks__
-public/uploads
 build/
 remote-repo/
 coverage/
@@ -39,5 +38,3 @@ packages/react-devtools-extensions/.tempUserDataDir
 packages/react-devtools-inline/dist
 packages/react-devtools-shell/dist
 packages/react-devtools-timeline/dist
-
-/public/*
