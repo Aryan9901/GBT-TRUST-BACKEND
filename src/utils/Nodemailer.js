@@ -1,5 +1,5 @@
 const nodemailer = require("nodemailer");
-const ErrorHandler = require("../utils/ErrorHandler");
+const { ApiError } = require("./ApiError.js");
 
 const transport = nodemailer.createTransport({
     service: "gmail",
@@ -12,9 +12,10 @@ const transport = nodemailer.createTransport({
 });
 
 exports.sendRegistrationConfirmation = (req, res, next) =>{
+        console.log(req.user.email)
         const mailOptions ={
             from: "Ganpati Balaji Trust",
-            to: req.body.email,
+            to: req.user.email,
             subject: "Payment Successful Confirmation",
             html:
             `
@@ -31,7 +32,7 @@ exports.sendRegistrationConfirmation = (req, res, next) =>{
 
         transport.sendMail(mailOptions,(err,info)=>{
             if(err){
-                return next (new ErrorHandler(err,500));
+                return next (new ApiError(err,500));
             } else{
                 console.log(info);
                 
